@@ -1,0 +1,31 @@
+# Datos: ORIGA-light no se redistribuye (descargar de Kaggle, ver README)
+archive/
+*.zip
+
+# Entorno de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# LaTeX (se compila en Overleaf)
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Sistema y editores
+.DS_Store
+.vscode/
+.idea/
+
+# Material de trabajo que no hace parte del repositorio
+_tmp*/
+SegundaEntrega/formato
+SegundaEntrega/*.md
+SegundaEntrega/informe/*.pdf
