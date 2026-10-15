@@ -1,0 +1,13 @@
+# Parámetros de la Entrega 2 - Proyecto B (glaucoma, ORIGA-light)
+# data_dir: carpeta "archive/" descargada de Kaggle (ruta relativa a esta carpeta o absoluta)
+data_dir: ../archive
+seed: 42
+val_size: 0.2
+img_size: 256
+r_centro: 38
+r_disco: 102
+C: 1.0
+umbral: 0.5
+n_bootstrap: 1000
+phash_threshold: 8
+
