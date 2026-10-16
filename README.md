@@ -4,7 +4,7 @@
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-orange)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
-Proyecto del curso **Imágenes Médicas (34740)**, Programa de Bioingeniería, Pontificia Universidad Javeriana.
+Proyecto del curso **Imágenes Médicas (34740)**, Departamento de Ingeniería de Sistemas, Pontificia Universidad Javeriana.
 **Proyecto B:** clasificar imágenes de fondo de ojo del conjunto ORIGA-light como *glaucoma* o *sano*.
 
 > Trabajo académico. Los resultados son preliminares y no constituyen una herramienta de diagnóstico clínico.
