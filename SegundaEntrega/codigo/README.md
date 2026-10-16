@@ -39,9 +39,10 @@ Desde esta carpeta, en orden:
 ```bash
 python 01_inventario.py           # resultados/inventario.csv
 python 02_particion.py            # resultados/particion.csv
-python 03_verificar_particion.py  # resultados/verificacion_particion.txt, figuras/pares_phash.png
+python 03_verificar_particion.py  # resultados/verificacion_particion.txt, figuras/pares_*.png
 python 04_linea_base.py           # caracteristicas.csv, predicciones_validacion.csv, metricas_validacion.json
 python 05_figuras.py              # figuras/casos_validacion.png, matriz_confusion.png, curva_roc.png
+python 06_analisis_error.py       # resultados/analisis_error.txt (cifras del análisis de la Sección 4)
 ```
 
 Todo corre en CPU en menos de un minuto (el paso más lento es el pHash de las 650 imágenes).
@@ -57,9 +58,11 @@ Todo corre en CPU en menos de un minuto (el paso más lento es el pHash de las 6
 | `C`, `umbral` | 1.0, 0.5 | regresión logística y umbral de decisión (fijos, sin ajuste) |
 | `n_bootstrap` | 1000 | remuestreos para los IC 95 % |
 | `phash_threshold` | 8 | distancia de Hamming máxima para marcar casi duplicados |
+| `phash_threshold_consecutivos` | 12 | igual, solo para códigos consecutivos (n, n+1) |
+| `revision_visual` | listas de pares | conclusión de la revisión a ojo: `mismo_ojo`, `distinto_ojo`, `dudoso` |
 
 ## 5. Contenido
 
 - `comun.py`: lectura de `config.yaml` y rutas compartidas.
-- `resultados/`: tablas y métricas generadas.
+- `resultados/`: tablas y métricas generadas (incluye `prueba_excluidos.csv`, las 4 imágenes de prueba que se excluyen de la evaluación final por tener un gemelo en entrenamiento).
 - `figuras/`: figuras generadas.
