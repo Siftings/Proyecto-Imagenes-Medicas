@@ -1,6 +1,6 @@
 """Comprueba que ningún caso aparezca en dos particiones: códigos, MD5 y pHash.
 
-Salidas: resultados/verificacion_particion.txt y figuras/pares_phash.png
+Salidas: resultados/verificacion_particion.txt, figuras/pares_phash.png y figuras/pares_consecutivos.png
 """
 import hashlib
 from itertools import combinations
@@ -82,6 +82,13 @@ out("   10 pares más cercanos (aunque superen el umbral):")
 for r in pares.head(10).itertuples():
     out(f"     {r.codigo_a} ({r.particion_a}) - {r.codigo_b} ({r.particion_b}): {r.distancia}")
 out(f"   Distancia mínima entre particiones: {pares['distancia'].min()} | mediana: {pares['distancia'].median():.0f}")
+etiquetas = part["etiqueta"].to_numpy()
+misma = (~distinta) & (D[i, j] <= umbral)
+out(f"   Pares dentro de una misma partición con distancia <= {umbral} (no son fuga, pero indican repeticiones): {misma.sum()}")
+for a, b in zip(i[misma], j[misma]):
+    alerta = " | ETIQUETAS DISTINTAS" if etiquetas[a] != etiquetas[b] else ""
+    out(f"     {part['codigo'][a]} - {part['codigo'][b]} ({particiones[a]}, y={etiquetas[a]}/{etiquetas[b]}): {D[a, b]}{alerta}")
+
 # Figura de pares para revisión visual: los sospechosos o, si no hay, los 5 más cercanos
 a_mostrar = sospechosos if len(sospechosos) else pares.head(5)
 titulo = ("Pares sospechosos (pHash <= %d)" % umbral) if len(sospechosos) else \
@@ -98,6 +105,36 @@ fig.suptitle(titulo, fontsize=9)
 fig.tight_layout()
 fig.savefig(FIGURAS / "pares_phash.png", dpi=150)
 out(f"   Figura de revisión: figuras/pares_phash.png ({len(a_mostrar)} pares)")
+
+# 3b. Códigos consecutivos: en la revisión visual, las repeticiones del mismo ojo aparecieron
+#     con números de imagen vecinos, a veces con distancia algo mayor que el umbral general.
+umbral_c = cfg["phash_threshold_consecutivos"]
+out(f"\n3b. Pares de códigos consecutivos (n, n+1) con pHash <= {umbral_c}, en cualquier partición")
+num = part["codigo"].str[-3:].astype(int).to_numpy()
+orden = np.argsort(num)
+consec = []
+for a, b in zip(orden[:-1], orden[1:]):
+    if num[b] == num[a] + 1 and D[a, b] <= umbral_c:
+        consec.append((part["codigo"][a], particiones[a], part["etiqueta"][a],
+                       part["codigo"][b], particiones[b], part["etiqueta"][b], D[a, b]))
+out(f"   Pares encontrados: {len(consec)} (de {len(part) - 1} pares consecutivos)")
+for ca, pa, ya, cb, pb, yb, d in consec:
+    marca = "MISMA PARTICIÓN" if pa == pb else "ENTRE PARTICIONES"
+    alerta = " | ETIQUETAS DISTINTAS" if ya != yb else ""
+    out(f"     {ca} ({pa}, y={ya}) - {cb} ({pb}, y={yb}): {d} | {marca}{alerta}")
+if consec:
+    fig, ejes = plt.subplots(len(consec), 2, figsize=(5, 2.5 * len(consec)), squeeze=False)
+    for fila, (ca, pa, ya, cb, pb, yb, d) in zip(ejes, consec):
+        for ax, cod, p, y in [(fila[0], ca, pa, ya), (fila[1], cb, pb, yb)]:
+            with Image.open(data_dir / archivo_de[cod]) as im:
+                ax.imshow(im.convert("RGB"))
+            ax.set_title(f"{cod} ({p}, y={y}) | d={d}", fontsize=8)
+            ax.axis("off")
+    fig.suptitle(f"Códigos consecutivos con pHash <= {umbral_c}", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(FIGURAS / "pares_consecutivos.png", dpi=150)
+    out("   Figura de revisión: figuras/pares_consecutivos.png")
+out("   Estos pares deben revisarse a ojo: la conclusión de la revisión se registra en el informe.")
 
 # 4. Conteos
 out("\n4. Conteos por partición y etiqueta (1 = glaucoma, 0 = sano)")

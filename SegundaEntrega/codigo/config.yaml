@@ -10,4 +10,5 @@ C: 1.0
 umbral: 0.5
 n_bootstrap: 1000
 phash_threshold: 8
+phash_threshold_consecutivos: 12
 
