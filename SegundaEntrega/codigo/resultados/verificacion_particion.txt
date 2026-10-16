@@ -1,0 +1,80 @@
+VERIFICACIÓN DE LA PARTICIÓN - Proyecto B (ORIGA-light)
+============================================================
+
+1. Intersección de códigos entre particiones
+   entrenamiento ∩ prueba: 0
+   entrenamiento ∩ validacion: 0
+   prueba ∩ validacion: 0
+   Códigos repetidos dentro de particion.csv: 0
+   Resultado: OK
+
+2. Duplicados exactos (MD5)
+   Duplicados dentro de una misma partición: 0
+   Grupos de MD5 repetidos entre particiones distintas: 0
+   Resultado: OK
+
+3. Casi duplicados por pHash (imagehash.phash, 64 bits), umbral de Hamming <= 8
+   Pares comparados (de particiones distintas): 122017
+   Pares con distancia <= 8: 4
+     train/180 (entrenamiento) - test/181 (prueba): 2
+     train/159 (entrenamiento) - test/158 (prueba): 4
+     train/300 (entrenamiento) - test/005 (prueba): 8
+     train/314 (entrenamiento) - test/313 (prueba): 8
+   10 pares más cercanos (aunque superen el umbral):
+     train/180 (entrenamiento) - test/181 (prueba): 2
+     train/159 (entrenamiento) - test/158 (prueba): 4
+     train/300 (entrenamiento) - test/005 (prueba): 8
+     train/314 (entrenamiento) - test/313 (prueba): 8
+     train/065 (entrenamiento) - test/041 (prueba): 10
+     train/134 (entrenamiento) - train/208 (validacion): 10
+     train/147 (entrenamiento) - test/175 (prueba): 10
+     train/166 (entrenamiento) - test/332 (prueba): 10
+     train/169 (entrenamiento) - test/170 (prueba): 10
+     train/188 (entrenamiento) - test/480 (prueba): 10
+   Distancia mínima entre particiones: 2 | mediana: 28
+   Pares dentro de una misma partición con distancia <= 8 (no son fuga, pero indican repeticiones): 5
+     train/037 - train/036 (entrenamiento, y=1/1): 2
+     train/052 - train/050 (entrenamiento, y=0/1): 6 | ETIQUETAS DISTINTAS
+     train/024 - train/023 (entrenamiento, y=0/0): 8
+     train/301 - train/300 (entrenamiento, y=1/1): 8
+     train/371 - train/208 (validacion, y=0/1): 8 | ETIQUETAS DISTINTAS
+   Figura de revisión: figuras/pares_phash.png (4 pares)
+
+3b. Pares de códigos consecutivos (n, n+1) con pHash <= 12, en cualquier partición
+   Pares encontrados: 8 (de 649 pares consecutivos)
+     train/023 (entrenamiento, y=0) - train/024 (entrenamiento, y=0): 8 | MISMA PARTICIÓN
+     train/026 (entrenamiento, y=0) - train/027 (validacion, y=0): 12 | ENTRE PARTICIONES
+     train/036 (entrenamiento, y=1) - train/037 (entrenamiento, y=1): 2 | MISMA PARTICIÓN
+     test/158 (prueba, y=1) - train/159 (entrenamiento, y=1): 4 | ENTRE PARTICIONES
+     train/169 (entrenamiento, y=0) - test/170 (prueba, y=0): 10 | ENTRE PARTICIONES
+     train/180 (entrenamiento, y=1) - test/181 (prueba, y=1): 2 | ENTRE PARTICIONES
+     train/300 (entrenamiento, y=1) - train/301 (entrenamiento, y=1): 8 | MISMA PARTICIÓN
+     test/313 (prueba, y=0) - train/314 (entrenamiento, y=0): 8 | ENTRE PARTICIONES
+   Figura de revisión: figuras/pares_consecutivos.png
+   Estos pares deben revisarse a ojo: la conclusión de la revisión se registra en el informe.
+
+4. Conteos por partición y etiqueta (1 = glaucoma, 0 = sano)
+etiqueta         0    1  total  % glaucoma
+particion                                 
+entrenamiento  269   94    363        25.9
+validacion      68   23     91        25.3
+prueba         145   51    196        26.0
+total          482  168    650        25.8
+
+5. Revisión visual (config.yaml -> revision_visual)
+   mismo_ojo    train/023 (entrenamiento) - train/024 (entrenamiento): d=8
+   mismo_ojo    train/026 (entrenamiento) - train/027 (validacion): d=12
+   mismo_ojo    train/036 (entrenamiento) - train/037 (entrenamiento): d=2
+   mismo_ojo    train/050 (entrenamiento) - train/052 (entrenamiento): d=6 | ETIQUETAS DISTINTAS
+   mismo_ojo    test/158 (prueba) - train/159 (entrenamiento): d=4
+   mismo_ojo    train/169 (entrenamiento) - test/170 (prueba): d=10
+   mismo_ojo    train/180 (entrenamiento) - test/181 (prueba): d=2
+   mismo_ojo    train/300 (entrenamiento) - train/301 (entrenamiento): d=8
+   mismo_ojo    test/313 (prueba) - train/314 (entrenamiento): d=8
+   distinto_ojo train/300 (entrenamiento) - test/005 (prueba): d=8 | ETIQUETAS DISTINTAS
+   distinto_ojo train/208 (validacion) - train/371 (validacion): d=8 | ETIQUETAS DISTINTAS
+   dudoso       train/147 (entrenamiento) - test/175 (prueba): d=10
+   Pares del mismo ojo entre particiones: 5 (entrenamiento-validación: 1, con prueba: 4)
+   Imágenes de prueba excluidas de la evaluación final: 4 -> test/158, test/170, test/181, test/313
+   Prueba efectiva: 192 imágenes (49 glaucoma / 143 sanas)
+   Figura para el informe: figuras/pares_mismo_ojo.png

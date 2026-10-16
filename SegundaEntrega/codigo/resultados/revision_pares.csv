@@ -1,0 +1,13 @@
+codigo_a,particion_a,etiqueta_a,codigo_b,particion_b,etiqueta_b,distancia_phash,conclusion
+train/023,entrenamiento,0,train/024,entrenamiento,0,8,mismo_ojo
+train/026,entrenamiento,0,train/027,validacion,0,12,mismo_ojo
+train/036,entrenamiento,1,train/037,entrenamiento,1,2,mismo_ojo
+train/050,entrenamiento,1,train/052,entrenamiento,0,6,mismo_ojo
+test/158,prueba,1,train/159,entrenamiento,1,4,mismo_ojo
+train/169,entrenamiento,0,test/170,prueba,0,10,mismo_ojo
+train/180,entrenamiento,1,test/181,prueba,1,2,mismo_ojo
+train/300,entrenamiento,1,train/301,entrenamiento,1,8,mismo_ojo
+test/313,prueba,0,train/314,entrenamiento,0,8,mismo_ojo
+train/300,entrenamiento,1,test/005,prueba,0,8,distinto_ojo
+train/208,validacion,1,train/371,validacion,0,8,distinto_ojo
+train/147,entrenamiento,0,test/175,prueba,0,10,dudoso
