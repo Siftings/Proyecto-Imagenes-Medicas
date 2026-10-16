@@ -1,6 +1,8 @@
 """Comprueba que ningún caso aparezca en dos particiones: códigos, MD5 y pHash.
 
-Salidas: resultados/verificacion_particion.txt, figuras/pares_phash.png y figuras/pares_consecutivos.png
+Salidas: resultados/verificacion_particion.txt, resultados/revision_pares.csv,
+         resultados/prueba_excluidos.csv, figuras/pares_phash.png, figuras/pares_consecutivos.png
+         y figuras/pares_mismo_ojo.png
 """
 import hashlib
 from itertools import combinations
@@ -142,5 +144,60 @@ tabla = pd.crosstab(part["particion"], part["etiqueta"], margins=True, margins_n
 tabla = tabla.reindex(["entrenamiento", "validacion", "prueba", "total"])
 tabla["% glaucoma"] = (100 * tabla[1] / tabla["total"]).round(1)
 out(tabla.to_string())
+
+# 5. Conclusión de la revisión visual (registrada en config.yaml) y exclusiones de prueba
+out("\n5. Revisión visual (config.yaml -> revision_visual)")
+info = part.set_index("codigo")
+rev = cfg.get("revision_visual", {})
+filas_rev = []
+for conclusion, lista in rev.items():
+    for a, b in lista:
+        ia, ib = part.index[part["codigo"] == a][0], part.index[part["codigo"] == b][0]
+        filas_rev.append({
+            "codigo_a": a, "particion_a": info.loc[a, "particion"], "etiqueta_a": int(info.loc[a, "etiqueta"]),
+            "codigo_b": b, "particion_b": info.loc[b, "particion"], "etiqueta_b": int(info.loc[b, "etiqueta"]),
+            "distancia_phash": int(D[ia, ib]), "conclusion": conclusion,
+        })
+rev_df = pd.DataFrame(filas_rev)
+rev_df.to_csv(RESULTADOS / "revision_pares.csv", index=False)
+for r in rev_df.itertuples():
+    alerta = " | ETIQUETAS DISTINTAS" if r.etiqueta_a != r.etiqueta_b else ""
+    out(f"   {r.conclusion:12s} {r.codigo_a} ({r.particion_a}) - {r.codigo_b} ({r.particion_b}): d={r.distancia_phash}{alerta}")
+
+mismo = rev_df[rev_df["conclusion"] == "mismo_ojo"]
+excluir = []
+for r in mismo.itertuples():
+    for cod, p, gem, pg in [(r.codigo_a, r.particion_a, r.codigo_b, r.particion_b),
+                            (r.codigo_b, r.particion_b, r.codigo_a, r.particion_a)]:
+        if p == "prueba" and pg != "prueba":
+            excluir.append({"codigo": cod, "etiqueta": int(info.loc[cod, "etiqueta"]), "gemelo": gem,
+                            "particion_gemelo": pg, "distancia_phash": r.distancia_phash})
+exc = pd.DataFrame(excluir, columns=["codigo", "etiqueta", "gemelo", "particion_gemelo", "distancia_phash"])
+exc.to_csv(RESULTADOS / "prueba_excluidos.csv", index=False)
+fuga_val = mismo[((mismo["particion_a"] == "validacion") & (mismo["particion_b"] == "entrenamiento")) |
+                 ((mismo["particion_a"] == "entrenamiento") & (mismo["particion_b"] == "validacion"))]
+out(f"   Pares del mismo ojo entre particiones: {(mismo['particion_a'] != mismo['particion_b']).sum()}"
+    f" (entrenamiento-validación: {len(fuga_val)}, con prueba: {len(exc)})")
+out(f"   Imágenes de prueba excluidas de la evaluación final: {len(exc)} -> {', '.join(exc['codigo'])}")
+prueba = part[part["particion"] == "prueba"]
+quedan = prueba[~prueba["codigo"].isin(exc["codigo"])]
+out(f"   Prueba efectiva: {len(quedan)} imágenes ({quedan['etiqueta'].sum()} glaucoma / {(quedan['etiqueta'] == 0).sum()} sanas)")
+
+# Figura para el informe: pares del mismo ojo que cruzan particiones (arriba y abajo de cada columna)
+cruzan = mismo[mismo["particion_a"] != mismo["particion_b"]]
+if len(cruzan):
+    fig, ejes = plt.subplots(2, len(cruzan), figsize=(2.1 * len(cruzan), 4.4), squeeze=False)
+    for k, r in enumerate(cruzan.itertuples()):
+        for fila, cod, p, y in [(0, r.codigo_a, r.particion_a, r.etiqueta_a), (1, r.codigo_b, r.particion_b, r.etiqueta_b)]:
+            ax = ejes[fila][k]
+            with Image.open(data_dir / archivo_de[cod]) as im:
+                ax.imshow(im.convert("RGB"))
+            ax.set_title(f"{cod} ({p[:5]}.) y={y}", fontsize=7)
+            ax.axis("off")
+        ejes[1][k].text(0.5, -0.08, f"d = {r.distancia_phash}", transform=ejes[1][k].transAxes,
+                        ha="center", va="top", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(FIGURAS / "pares_mismo_ojo.png", dpi=150)
+    out("   Figura para el informe: figuras/pares_mismo_ojo.png")
 
 (RESULTADOS / "verificacion_particion.txt").write_text("\n".join(lineas) + "\n", encoding="utf-8")

@@ -12,3 +12,23 @@ n_bootstrap: 1000
 phash_threshold: 8
 phash_threshold_consecutivos: 12
 
+# Conclusión de la revisión visual de los pares marcados por 03_verificar_particion.py
+# (figuras/pares_phash.png y figuras/pares_consecutivos.png). Se mantiene la partición;
+# las imágenes de prueba con un gemelo en entrenamiento o validación se excluyen de la
+# evaluación final (resultados/prueba_excluidos.csv).
+revision_visual:
+  mismo_ojo:
+    - [train/023, train/024]
+    - [train/026, train/027]
+    - [train/036, train/037]
+    - [train/050, train/052]
+    - [test/158, train/159]
+    - [train/169, test/170]
+    - [train/180, test/181]
+    - [train/300, train/301]
+    - [test/313, train/314]
+  distinto_ojo:
+    - [train/300, test/005]
+    - [train/208, train/371]
+  dudoso:
+    - [train/147, test/175]
