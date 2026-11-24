@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glaucoma en ORIGA-light · Entrega final · Equipo 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   =========================================== */
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+.deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* ===========================================
+   THEME: papel cálido + tinta azul profunda + acento "fondo de ojo"
+   =========================================== */
+:root {
+    --stage-bg: #1b1d22;
+    --slide-bg: #f6f3ec;
+    --ink: #17223b;
+    --ink-2: #4a5468;
+    --muted: #7d8494;
+    --rule: #d9d3c5;
+    --accent: #c4501b;      /* naranja de retina */
+    --accent-soft: #f3dfd2;
+    --good: #1f7a5a;
+    --panel: #fffdf8;
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+}
+
+/* === LAYOUT COMÚN === */
+.slide { font-family: var(--sans); color: var(--ink); }
+.slide::before {           /* banda lateral: recuerda el disco óptico iluminado */
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
+    background: linear-gradient(180deg, #f2b35a 0%, var(--accent) 55%, #8e2f10 100%);
+}
+.frame { position: absolute; inset: 70px 110px 90px 130px; }
+.kicker { font-family: var(--mono); font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 66px; line-height: 1.05; }
+.lead { font-size: 34px; line-height: 1.4; color: var(--ink-2); margin: 18px 0 0; max-width: 1500px; }
+.foot { position: absolute; left: 130px; right: 110px; bottom: 34px; display: flex; justify-content: space-between;
+        font-family: var(--mono); font-size: 18px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; }
+.cols { display: grid; gap: 56px; margin-top: 64px; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 30px 34px; }
+ul.pts { margin: 0; padding: 0; list-style: none; }
+ul.pts li { font-size: 33px; line-height: 1.38; padding: 13px 0 13px 38px; position: relative; color: var(--ink); }
+ul.pts li::before { content: ""; position: absolute; left: 4px; top: 30px; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); }
+.num { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1; }
+.lbl { font-size: 26px; color: var(--ink-2); margin-top: 8px; line-height: 1.3; }
+.mono { font-family: var(--mono); }
+.hl { color: var(--accent); font-weight: 600; }
+.warn { background: var(--accent-soft); border-left: 6px solid var(--accent); padding: 22px 28px; font-size: 30px; line-height: 1.4; border-radius: 0 6px 6px 0; }
+figure { margin: 0; }
+figcaption { font-size: 23px; color: var(--muted); margin-top: 10px; line-height: 1.35; }
+
+/* === TABLAS === */
+table.t { border-collapse: collapse; width: 100%; font-size: 30px; }
+table.t th { font-family: var(--mono); font-weight: 500; font-size: 21px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--ink); }
+table.t td { padding: 17px 14px; border-bottom: 1px solid var(--rule); }
+table.t td.r, table.t th.r { text-align: right; }
+table.t tr.sel td { background: var(--accent-soft); font-weight: 600; }
+
+/* === PORTADA === */
+.title-slide { background: radial-gradient(ellipse 900px 700px at 82% 50%, #f9d9b4 0%, #f3b77e 25%, rgba(196,80,27,.55) 55%, rgba(246,243,236,0) 78%), var(--slide-bg); }
+.title-slide h1 { font-size: 92px; line-height: 1.02; max-width: 1150px; }
+.title-slide .sub { font-size: 38px; color: var(--ink-2); margin-top: 28px; max-width: 1050px; line-height: 1.35; }
+.team { position: absolute; left: 0; bottom: 40px; font-size: 30px; line-height: 1.55; }
+.team b { font-family: var(--mono); font-weight: 500; font-size: 20px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 6px; }
+
+/* === FLUJO (método) === */
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 38px; margin-top: 40px; }
+.step { background: var(--panel); border: 1px solid var(--rule); border-top: 6px solid var(--ink); border-radius: 6px; padding: 28px 30px; position: relative; min-height: 290px; }
+.step:nth-child(3) { border-top-color: var(--accent); }
+.step h3 { font-family: var(--serif); font-size: 40px; margin: 0 0 12px; }
+.step p { font-size: 27px; line-height: 1.4; margin: 0; color: var(--ink-2); }
+.step:not(:last-child)::after { content: "→"; position: absolute; right: -32px; top: 42%; font-size: 34px; color: var(--accent); }
+
+/* === MÉTRICAS GRANDES === */
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.metric { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 34px 32px; }
+.metric .num { font-size: 100px; }
+.metric .den { font-family: var(--mono); font-size: 28px; color: var(--accent); margin-top: 6px; }
+
+/* === CÓDIGO / DEMO === */
+pre.term { background: #17223b; color: #e9e4d8; font-family: var(--mono); font-size: 21px; line-height: 1.5; padding: 22px 26px; border-radius: 6px; margin: 0; white-space: pre-wrap; }
+pre.term .p { color: #f2b35a; }
+
+/* === ANIMACIÓN: entrada escalonada === */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.slide.active .reveal { opacity: 1; transform: none; }
+.slide.active .reveal:nth-child(2) { transition-delay: .08s; }
+.slide.active .reveal:nth-child(3) { transition-delay: .16s; }
+.slide.active .reveal:nth-child(4) { transition-delay: .24s; }
+
+/* === CONTROLES Y EDICIÓN (fuera del escenario) === */
+.deck-controls { font-family: var(--mono); font-size: 14px; color: #c9c4b8; background: rgba(0,0,0,.45); padding: 6px 14px; border-radius: 20px; }
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; }
+.edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity .2s; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.edit-toggle.show, .edit-toggle.on { opacity: 1; pointer-events: auto; }
+body.editing [data-edit] { outline: 1px dashed var(--accent); }
+</style>
+</head>
+<body>
+<div class="edit-hotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Modo edición (E)">✏️</button>
+
+<div class="deck-viewport">
+<div class="deck-stage" id="stage">
+
+<!-- === 1. PORTADA === -->
+<section class="slide title-slide active">
+  <div class="frame">
+    <p class="kicker reveal">Imágenes Médicas 34740 · Entrega final · Proyecto B</p>
+    <h1 class="reveal" data-edit>Glaucoma en fondo de ojo: color frente a rasgos de ResNet-18</h1>
+    <p class="sub reveal" data-edit>Clasificación glaucoma / sano en ORIGA-light, con la línea base comparada contra tres variantes en los mismos casos y una única evaluación en prueba.</p>
+    <div class="team reveal" data-edit>
+      <b>Equipo 02</b>
+      Giuseppe Kanyike Buwule · Daniel Duque · Juan David Daza<br>
+      Prof. Xavier Díaz · Pontificia Universidad Javeriana · 26 de noviembre de 2026
+    </div>
+  </div>
+</section>
+
+<!-- === 2. PROBLEMA Y DATOS === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">1 · Problema y datos</p>
+    <h2 data-edit>¿Se puede distinguir glaucoma en un recorte del disco óptico?</h2>
+    <div class="cols" style="grid-template-columns: 1.05fr 1fr;">
+      <div class="panel reveal">
+        <ul class="pts" data-edit>
+          <li><b>Entrada:</b> recorte RGB (JPG) centrado en el disco óptico</li>
+          <li><b>Referencia:</b> etiqueta del CSV (SERI): glaucoma = <span class="hl">clase positiva</span></li>
+          <li><b>Salida:</b> puntuación en [0, 1] y clase con un umbral fijado antes de la prueba</li>
+          <li>No es un diagnóstico: es un estudio académico</li>
+        </ul>
+      </div>
+      <div class="reveal">
+        <div class="metrics" style="grid-template-columns: 1fr 1fr;">
+          <div class="metric"><div class="num">650</div><div class="lbl">imágenes · copia de Kaggle de ORIGA-light (MIT)</div></div>
+          <div class="metric"><div class="num">168</div><div class="lbl">glaucoma frente a 482 sanas (25,8 %)</div></div>
+          <div class="metric"><div class="num">≤ 641</div><div class="lbl">ojos distintos (9 pares son el mismo ojo)</div></div>
+          <div class="metric"><div class="num">?</div><div class="lbl">personas: no hay ID de paciente; el SERI no respondió</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>2 / 8</span></div>
+</section>
+
+<!-- === 3. PARTICIÓN Y FUGA === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">2 · Partición y control de fuga</p>
+    <h2 data-edit>Separamos por imagen y buscamos repeticiones del mismo ojo</h2>
+    <div class="cols" style="grid-template-columns: 0.9fr 1.1fr; gap: 50px; margin-top: 34px;">
+      <div class="reveal">
+        <table class="t">
+          <tr><th>Partición</th><th class="r">Imágenes</th><th class="r">Glaucoma</th><th class="r">Sano</th></tr>
+          <tr><td>Entrenamiento</td><td class="r">363</td><td class="r">94</td><td class="r">269</td></tr>
+          <tr><td>Validación</td><td class="r">91</td><td class="r">23</td><td class="r">68</td></tr>
+          <tr><td>Prueba evaluada</td><td class="r">192</td><td class="r">49</td><td class="r">143</td></tr>
+          <tr><td style="color:var(--muted)">Prueba excluida</td><td class="r" style="color:var(--muted)">4</td><td class="r" style="color:var(--muted)">2</td><td class="r" style="color:var(--muted)">2</td></tr>
+        </table>
+        <p class="lbl" style="margin-top:18px" data-edit>Validación: 20 % estratificado de <span class="mono">train</span>, semilla 42. Prueba: <span class="mono">ORIGA/test</span>.</p>
+        <div class="warn" style="margin-top:26px" data-edit><b>Límite:</b> sin ID de paciente, la separación por persona <b>no es verificable</b>. Los dos ojos de una persona podrían quedar en particiones distintas.</div>
+      </div>
+      <figure class="reveal">
+        <img src="img/pares_mismo_ojo.png" alt="Pares del mismo ojo entre particiones" style="width:100%; border:1px solid var(--rule); border-radius:6px;">
+        <figcaption data-edit>Códigos sin cruce y 0 duplicados MD5. Con pHash y revisión a ojo encontramos 9 pares del mismo ojo, 5 entre particiones; las 4 imágenes de prueba con gemelo se excluyen.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>3 / 8</span></div>
+</section>
+
+<!-- === 4. MÉTODO === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">3 · Método</p>
+    <h2 data-edit>Cambio principal: la representación de la imagen</h2>
+    <div class="flow reveal">
+      <div class="step"><h3>Entrada</h3><p>Recorte JPG RGB y etiqueta del CSV</p></div>
+      <div class="step"><h3>Preparación</h3><p>Base: 256 px, [0,1]. Variantes: 224 px, normalización de ImageNet</p></div>
+      <div class="step"><h3>Método</h3><p>Base: 8 rasgos de color y palidez + regresión logística (LR)<br>V1/V2: ResNet-18 fija + LR · V3: ajuste fino</p></div>
+      <div class="step"><h3>Evaluación</h3><p>Validación (91): comparar, elegir y fijar el umbral<br>Prueba (192): una sola vez</p></div>
+    </div>
+    <div class="cols reveal" style="grid-template-columns: 1fr 1fr; margin-top: 40px;">
+      <ul class="pts" data-edit>
+        <li><b>V1:</b> 512 rasgos de ResNet-18 de ImageNet con la <b>misma</b> LR de la base (C = 1)</li>
+        <li><b>V2:</b> igual, con C elegido por CV <b>solo en entrenamiento</b> (C = 10⁻⁴)</li>
+        <li><b>V3:</b> ajuste fino de <span class="mono">layer4</span>, con 20 épocas fijas y aumento de datos</li>
+      </ul>
+      <ul class="pts" data-edit>
+        <li><b>Por qué:</b> la base respondía al brillo y no a la copa; la transferencia desde ImageNet ayuda con pocos datos (Christopher et al., 2018)</li>
+        <li><b>Regla fijada antes de comparar:</b> gana el mayor AUC en validación; si la diferencia es menor de 0,01, gana la más simple</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>4 / 8</span></div>
+</section>
+
+<!-- === 5. VALIDACIÓN === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">4 · Resultado en validación (mismas 91 imágenes)</p>
+    <h2 data-edit>Los rasgos de ResNet-18 suben el AUC de 0,67 a 0,83</h2>
+    <div class="cols" style="grid-template-columns: 1.25fr 0.75fr; gap: 50px; margin-top: 30px;">
+      <div class="reveal">
+        <table class="t">
+          <tr><th>Versión</th><th class="r">Sens. (0,5)</th><th class="r">Esp. (0,5)</th><th class="r">AUC (IC 95 %)</th><th class="r">AUC ent.</th></tr>
+          <tr><td>Base</td><td class="r">16/23</td><td class="r">43/68</td><td class="r">0,667 (0,54–0,78)</td><td class="r">0,649</td></tr>
+          <tr><td>V1 · C = 1</td><td class="r">13/23</td><td class="r">57/68</td><td class="r">0,797 (0,67–0,90)</td><td class="r">1,000</td></tr>
+          <tr class="sel"><td>V2 · C por CV</td><td class="r">17/23</td><td class="r">52/68</td><td class="r">0,831 (0,74–0,91)</td><td class="r">0,810</td></tr>
+          <tr><td>V3 · ajuste fino</td><td class="r">9/23</td><td class="r">66/68</td><td class="r">0,837 (0,73–0,93)</td><td class="r">0,999</td></tr>
+        </table>
+        <ul class="pts" style="margin-top:22px" data-edit>
+          <li>V1 y V3 memorizan el entrenamiento (AUC de entrenamiento ≈ 1)</li>
+          <li><b>Elegida: V2.</b> Empata con V3 (diferencia de 0,006) y es más simple</li>
+          <li>Umbral congelado: <span class="hl mono">0,4834</span>, la especificidad de la base (43/68), que da sensibilidad 21/23</li>
+        </ul>
+      </div>
+      <figure class="reveal">
+        <img src="img/roc_comparacion_validacion.png" alt="ROC en validación" style="width:100%;">
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>5 / 8</span></div>
+</section>
+
+<!-- === 6. PRUEBA === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">5 · Resultado final en prueba (V2, una sola vez)</p>
+    <h2 data-edit>Detecta 40 de 49 glaucomas, con muchas falsas alarmas</h2>
+    <div class="cols" style="grid-template-columns: 1.15fr 0.85fr; gap: 50px; margin-top: 34px;">
+      <div class="reveal">
+        <div class="metrics">
+          <div class="metric"><div class="num">0,816</div><div class="den">40/49</div><div class="lbl">sensibilidad (IC 0,69–0,92)</div></div>
+          <div class="metric"><div class="num">0,524</div><div class="den">75/143</div><div class="lbl">especificidad (IC 0,44–0,60)</div></div>
+          <div class="metric"><div class="num">0,751</div><div class="den">n = 192</div><div class="lbl">AUC (IC 0,66–0,83)</div></div>
+        </div>
+        <ul class="pts" style="margin-top:26px" data-edit>
+          <li><b>Mejoró</b> frente a la base en validación: +0,16 de AUC (IC 0,04–0,31)</li>
+          <li><b>Empeoró</b> de validación a prueba: AUC de 0,83 a 0,75 y especificidad de 0,63 a 0,52</li>
+          <li>Las puntuaciones están comprimidas entre 0,39 y 0,61, y el umbral queda en la mediana de las sanas: es frágil</li>
+        </ul>
+      </div>
+      <figure class="reveal" style="display:flex; flex-direction:column; align-items:center;">
+        <img src="img/matriz_confusion_prueba.png" alt="Matriz de confusión en prueba" style="height:660px;">
+        <figcaption data-edit>La base no se evaluó en prueba (la guía no lo exige).</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>6 / 8</span></div>
+</section>
+
+<!-- === 7. ERROR, CASO LÍMITE Y DEMO === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">6 · Error, caso límite y ejecución</p>
+    <h2 data-edit>El modelo no mira donde mira un oftalmólogo</h2>
+    <div class="cols" style="grid-template-columns: 0.92fr 1.08fr; gap: 48px; margin-top: 30px;">
+      <figure class="reveal">
+        <img src="img/casos_analizados_prueba.png" alt="Casos analizados con Grad-CAM" style="width:100%; max-height:790px; object-fit:contain;">
+      </figure>
+      <div class="reveal">
+        <ul class="pts" data-edit>
+          <li><b>test/580, FN</b> (p = 0,420): el disco está descentrado y el Grad-CAM cae en el borde, no en la copa. <i>Hipótesis:</i> los rasgos globales mezclan el disco con la retina</li>
+          <li><b>test/183, FP límite</b> (p = 0,4836, a 0,0001 del umbral): toma desenfocada, sin bordes nítidos</li>
+        </ul>
+        <pre class="term" style="margin-top:22px"><span class="p">$</span> python predecir.py ../archive/ORIGA/test/580.jpg ../archive/ORIGA/test/240.jpg
+V2: ResNet-18 congelada + LR balanceada (C por CV en entrenamiento) | umbral 0.4834
+test/580: puntuación 0.4200 -> sano | referencia: glaucoma (prueba)
+test/240: puntuación 0.5328 -> glaucoma | referencia: glaucoma (prueba)</pre>
+        <p class="lbl" style="margin-top:12px" data-edit>Inferencia con los pesos congelados (sin reentrenar). Coincide con <span class="mono">predicciones_prueba.csv</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>7 / 8</span></div>
+</section>
+
+<!-- === 8. CONCLUSIÓN === -->
+<section class="slide">
+  <div class="frame">
+    <p class="kicker">7 · Conclusión</p>
+    <h2 data-edit>Hay señal, pero no basta para tamizaje</h2>
+    <div class="cols" style="grid-template-columns: 1fr 1fr; gap: 56px;">
+      <div class="panel reveal">
+        <p class="kicker" style="color:var(--good)">Lo que sí podemos decir</p>
+        <ul class="pts" data-edit>
+          <li>En prueba, AUC de 0,75 (192 imágenes nunca usadas para ajustar): mejor que el azar</li>
+          <li>Los rasgos preentrenados superan a las medidas de color en validación (+0,16)</li>
+          <li>Regularizar es necesario: sin regularización, el modelo memoriza</li>
+        </ul>
+      </div>
+      <div class="panel reveal">
+        <p class="kicker">Lo que no podemos concluir</p>
+        <ul class="pts" data-edit>
+          <li>Utilidad clínica ni desempeño en otras poblaciones o cámaras</li>
+          <li>Que el modelo use la copa óptica (Grad-CAM)</li>
+          <li>Que V2 sea mejor que V3 (sus intervalos se solapan)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="warn reveal" style="margin-top:36px" data-edit><b>Trabajo futuro prioritario:</b> conseguir los datos oficiales con ID de paciente, repetir la partición por persona y validar en un conjunto externo (por ejemplo, REFUGE).</div>
+  </div>
+  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>8 / 8</span></div>
+</section>
+
+</div>
+</div>
+
+<script>
+/* === PRESENTACIÓN: escalado del escenario y navegación === */
+class SlidePresentation {
+    constructor() {
+        this.stage = document.getElementById('stage');
+        this.slides = [...document.querySelectorAll('.slide')];
+        this.i = 0;
+        this.fit();
+        window.addEventListener('resize', () => this.fit());
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.show(0);
+    }
+    fit() {   // escala uniforme del lienzo 1920x1080, con bandas si hace falta
+        const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        const x = (window.innerWidth - 1920 * s) / 2, y = (window.innerHeight - 1080 * s) / 2;
+        this.stage.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+    }
+    show(n) {
+        this.i = Math.max(0, Math.min(this.slides.length - 1, n));
+        this.slides.forEach((el, k) => el.classList.toggle('active', k === this.i));
+    }
+    setupKeyboardNav() {
+        document.addEventListener('keydown', e => {
+            if (document.body.classList.contains('editing')) return;
+            if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); this.show(this.i + 1); }
+            if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.show(this.i - 1); }
+            if (e.key === 'Home') this.show(0);
+            if (e.key === 'End') this.show(this.slides.length - 1);
+        });
+    }
+    setupTouchNav() {
+        let x0 = null;
+        document.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; });
+        document.addEventListener('touchend', e => {
+            if (x0 === null) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 50) this.show(this.i + (dx < 0 ? 1 : -1));
+            x0 = null;
+        });
+    }
+}
+const deck = new SlidePresentation();
+
+/* === EDICIÓN EN LÍNEA: E o esquina superior izquierda; Ctrl+S guarda una copia === */
+(() => {
+    const btn = document.getElementById('editToggle'), zone = document.querySelector('.edit-hotzone');
+    let t;
+    zone.addEventListener('mouseenter', () => { clearTimeout(t); btn.classList.add('show'); });
+    zone.addEventListener('mouseleave', () => { t = setTimeout(() => btn.classList.remove('show'), 400); });
+    btn.addEventListener('mouseenter', () => clearTimeout(t));
+    const toggle = () => {
+        const on = document.body.classList.toggle('editing');
+        btn.classList.toggle('on', on);
+        document.querySelectorAll('[data-edit]').forEach(el => el.contentEditable = on);
+    };
+    btn.addEventListener('click', toggle);
+    document.addEventListener('keydown', e => {
+        if ((e.key === 'e' || e.key === 'E') && !document.body.classList.contains('editing')) toggle();
+        else if (e.key === 'Escape' && document.body.classList.contains('editing')) toggle();
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            const blob = new Blob(['<!DOCTYPE html>\n' + document.documentElement.outerHTML], {type: 'text/html'});
+            const a = Object.assign(document.createElement('a'), {href: URL.createObjectURL(blob), download: 'index.html'});
+            a.click();
+        }
+    });
+})();
+</script>
+</body>
+</html>

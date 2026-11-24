@@ -20,36 +20,67 @@ método de clasificación, usando como referencia las etiquetas clínicas del co
   [Kaggle](https://www.kaggle.com/datasets/ferencjuhsz/origa-retinal-fundus-image-dataset).
 - 650 recortes RGB centrados en el disco óptico (255×255 a 493×493 px): 168 con glaucoma y 482 sanos.
 - Las imágenes **no se incluyen** en este repositorio. Para ejecutar el código, descarga el conjunto y
-  ubica la carpeta `archive/` dentro de `SegundaEntrega/` (o ajusta `data_dir` en `config.yaml`).
+  ubica la carpeta `archive/` dentro de `TerceraEntrega/` (o ajusta `data_dir` en `config.yaml`).
 
 ## Estructura
 
 ```
 .
-├── SegundaEntrega/
-│   ├── codigo/                  # scripts 01–06, configuración y salidas
-│   │   ├── config.yaml          # semilla, parámetros y revisión visual de pares
-│   │   ├── 01_inventario.py ... 06_analisis_error.py
-│   │   ├── resultados/          # tablas, métricas (JSON) y verificación de la partición
-│   │   └── figuras/             # ROC, matriz de confusión, casos y pares repetidos
-│   └── informe/                 # informe en LaTeX (plantilla Springer Nature) y figuras
+├── TerceraEntrega/              # entrega final (versión vigente)
+│   ├── codigo/                  # scripts 01–13, predecir.py, modelos.py, config.yaml
+│   │   ├── modelos/             # pesos: base, V1, V2 (joblib); V3 (.pt, fuera de git)
+│   │   ├── resultados/          # partición, comparación en validación, prueba, análisis
+│   │   └── figuras/
+│   ├── informe/                 # informe final en LaTeX (Springer Nature) y figuras
+│   └── presentacion/            # diapositivas HTML/PDF y guion de la sustentación
+├── SegundaEntrega/              # Entrega 2: partición y línea base (scripts 01–06)
 └── LICENSE
 ```
 
 ## Ejecución rápida
 
 ```bash
-cd SegundaEntrega/codigo
+cd TerceraEntrega/codigo
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-for s in 01_inventario 02_particion 03_verificar_particion 04_linea_base 05_figuras 06_analisis_error; do
-  python $s.py
-done
+for s in 01_inventario 02_particion 03_verificar_particion 04_linea_base 05_figuras 06_analisis_error \
+         07_extraer_cnn 08_variantes_lr 09_ajuste_fino 10_comparacion_validacion; do python $s.py; done
+python 11_evaluacion_prueba.py --forzar   # reproduce la evaluación única en prueba
+python 12_figuras_final.py && python 13_analisis_prueba.py
+python predecir.py ../archive/ORIGA/test/580.jpg
 ```
 
-Todo corre en CPU en menos de un minuto. Los detalles están en [`SegundaEntrega/codigo/README.md`](SegundaEntrega/codigo/README.md).
+Todo corre en CPU en unos 5 minutos; el ajuste fino de V3 es el paso más lento. Los detalles están en [`TerceraEntrega/codigo/README.md`](TerceraEntrega/codigo/README.md).
 
-## Entrega 2: partición y línea base
+## Entrega final: base frente a variantes y evaluación en prueba
+
+Todas las versiones se ajustan con las 363 imágenes de entrenamiento y se comparan sobre las mismas 91 de validación.
+La regla de selección se fijó antes de comparar: gana el mayor AUC y, si la diferencia es menor de 0,01, gana la versión más simple.
+
+| Versión | Qué cambia | Sensibilidad (umbral 0,5) | Especificidad (umbral 0,5) | AUC en validación (IC 95 %) |
+|---|---|---:|---:|---:|
+| Base | 8 rasgos de color + LR | 16/23 | 43/68 | 0,667 (0,54–0,78) |
+| V1 | rasgos de ResNet-18 congelada + misma LR | 13/23 | 57/68 | 0,797 (0,67–0,90) |
+| **V2** | V1 con C por CV en entrenamiento | 17/23 | 52/68 | **0,831** (0,74–0,91) |
+| V3 | ajuste fino de ResNet-18 | 9/23 | 66/68 | 0,837 (0,73–0,93) |
+
+Se eligió **V2**, porque empata con V3 según la regla y es más simple, y su umbral quedó congelado en 0,4834.
+Esa versión se evaluó **una sola vez** en prueba, sobre 192 imágenes (sin las 4 que tienen un gemelo en entrenamiento):
+
+| Métrica | Valor | IC 95 % |
+|---|---:|---:|
+| Sensibilidad | 40/49 = 0,816 | 0,69–0,92 |
+| Especificidad | 75/143 = 0,524 | 0,44–0,60 |
+| AUC-ROC | 0,751 | 0,66–0,83 |
+
+<p align="center">
+  <img src="TerceraEntrega/codigo/figuras/roc_comparacion_validacion.png" width="42%" alt="ROC en validación">
+  <img src="TerceraEntrega/codigo/figuras/matriz_confusion_prueba.png" width="38%" alt="Matriz de confusión en prueba">
+</p>
+
+Hay señal, pero la especificidad no alcanza para tamizaje. La copia no trae ID de paciente, así que no se puede verificar que una persona no aparezca en dos particiones.
+
+## Entrega 2 (preliminar): partición y línea base
 
 **Partición.** Se respeta la división `train`/`test` de la copia y se toma el 20 % de `train` como validación,
 estratificada por etiqueta (semilla 42).
