@@ -1,0 +1,17 @@
+1. Probabilidades en validación
+   Mediana por clase: {0: 0.456, 1: 0.516}
+   FP con p < 0,60: 18 de 25
+   FN con p entre 0,39 y 0,49: 6 de 7
+
+2. Características en entrenamiento
+   media_R > 0,95: 98.9 % | min 0.873 | media 0.9919 | desv 0.0105
+   Mediana de palidez_G por clase: {0: 1.062, 1: 1.075}
+
+3. Caso train/233
+   p = 0.004 | media_R = 0.712 | media_G = 0.382 (mín. de media_G en entrenamiento: 0.445)
+   media_R a -26.6 desviaciones de la media de entrenamiento
+   Aporte de cada característica al logit: media_R -6.6, media_G -2.2, media_B +1.1, std_R -0.9, std_G +0.5, std_B -0.4, palidez_G -0.0, palidez_R +3.0, intercepto -0.06
+   Prueba (1): características recortadas al rango de entrenamiento -> p = 0.177
+
+4. Validación sin train/027 (VN, p = 0.457)
+   Especificidad 42/67 = 0.627 | AUC 0.665

@@ -29,3 +29,8 @@ _tmp*/
 SegundaEntrega/formato
 SegundaEntrega/*.md
 SegundaEntrega/informe/*.pdf
+TerceraEntrega/*.md
+TerceraEntrega/informe/*.pdf
+
+# Pesos de modelos entrenados (se regeneran con el código)
+*.pt

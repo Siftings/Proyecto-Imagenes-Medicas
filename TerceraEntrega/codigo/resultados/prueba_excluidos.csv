@@ -1,0 +1,5 @@
+codigo,etiqueta,gemelo,particion_gemelo,distancia_phash
+test/158,1,train/159,entrenamiento,4
+test/170,0,train/169,entrenamiento,10
+test/181,1,train/180,entrenamiento,2
+test/313,0,train/314,entrenamiento,8
