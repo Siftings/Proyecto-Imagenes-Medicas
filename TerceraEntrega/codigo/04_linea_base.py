@@ -2,61 +2,38 @@
 
 Solo usa entrenamiento (ajuste) y validación (una evaluación). La prueba no se toca.
 Salidas: resultados/caracteristicas.csv, resultados/predicciones_validacion.csv,
-         resultados/metricas_validacion.json, figuras/caracteristicas_por_clase.png
+         resultados/metricas_validacion.json, figuras/caracteristicas_por_clase.png,
+         modelos/modelo_base.joblib (para evaluar en prueba si resulta elegida)
 """
 import json
 import platform
 
+import joblib
 import matplotlib
 import numpy as np
 import pandas as pd
 import PIL
 import sklearn
-from PIL import Image
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_auc_score
+from sklearn.metrics import roc_auc_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from comun import FIGURAS, RESULTADOS, cargar_config
+from comun import (CARACTERISTICAS, FIGURAS, MODELOS, RESULTADOS, bootstrap, cargar_config,
+                   extraer_color, metricas)
 
 cfg = cargar_config()
 data_dir = cfg["data_dir"]
 seed = cfg["seed"]
 np.random.seed(seed)
 
-CARACTERISTICAS = ["media_R", "media_G", "media_B", "std_R", "std_G", "std_B", "palidez_G", "palidez_R"]
-
-# Máscaras circulares centradas en la imagen redimensionada
-n = cfg["img_size"]
-c = n // 2
-yy, xx = np.mgrid[0:n, 0:n]
-r = np.sqrt((yy - c) ** 2 + (xx - c) ** 2)
-centro = r <= cfg["r_centro"]
-anillo = (r > cfg["r_centro"]) & (r <= cfg["r_disco"])
-disco = r <= cfg["r_disco"]
-
-
-def extraer(ruta):
-    with Image.open(ruta) as im:
-        img = im.convert("RGB").resize((n, n), Image.BILINEAR)
-    x = np.asarray(img, dtype=np.float64) / 255.0
-    R, G, B = x[..., 0], x[..., 1], x[..., 2]
-    return [
-        R[disco].mean(), G[disco].mean(), B[disco].mean(),
-        R[disco].std(), G[disco].std(), B[disco].std(),
-        G[centro].mean() / G[anillo].mean(),
-        R[centro].mean() / R[anillo].mean(),
-    ]
-
-
 # Características de entrenamiento y validación (nunca prueba)
 part = pd.read_csv(RESULTADOS / "particion.csv")
 part = part[part["particion"].isin(["entrenamiento", "validacion"])].reset_index(drop=True)
-X_all = np.array([extraer(data_dir / f) for f in part["archivo"]])
+X_all = np.array([extraer_color(data_dir / f, cfg) for f in part["archivo"]])
 car = pd.concat([part[["codigo", "particion", "etiqueta"]],
                  pd.DataFrame(X_all, columns=CARACTERISTICAS)], axis=1)
 car.to_csv(RESULTADOS / "caracteristicas.csv", index=False, float_format="%.6f")
@@ -71,35 +48,10 @@ modelo = Pipeline([
     ("lr", LogisticRegression(class_weight="balanced", C=cfg["C"], max_iter=1000)),
 ])
 modelo.fit(X_ent, y_ent)
+joblib.dump(modelo, MODELOS / "modelo_base.joblib")
 
 prob = modelo.predict_proba(X_val)[:, 1]
 pred = (prob >= cfg["umbral"]).astype(int)
-
-
-def metricas(y, p, s):
-    vn, fp, fn, vp = confusion_matrix(y, p, labels=[0, 1]).ravel()
-    return {
-        "sensibilidad": vp / (vp + fn) if vp + fn else float("nan"),
-        "especificidad": vn / (vn + fp) if vn + fp else float("nan"),
-        "AUC": roc_auc_score(y, s),
-        "F1": f1_score(y, p, zero_division=0),
-        "exactitud": accuracy_score(y, p),
-    }, (int(vp), int(fn), int(fp), int(vn))
-
-
-def bootstrap(y, p, s, n_boot, semilla):
-    """IC 95 % percentil con remuestreo estratificado por clase."""
-    rng = np.random.default_rng(semilla)
-    pos, neg = np.where(y == 1)[0], np.where(y == 0)[0]
-    res = {k: [] for k in ["sensibilidad", "especificidad", "AUC", "F1", "exactitud"]}
-    for _ in range(n_boot):
-        idx = np.concatenate([rng.choice(pos, len(pos), replace=True),
-                              rng.choice(neg, len(neg), replace=True)])
-        m, _ = metricas(y[idx], p[idx], s[idx])
-        for k, v in m.items():
-            res[k].append(v)
-    return {k: [float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))] for k, v in res.items()}
-
 
 m, (vp, fn, fp, vn) = metricas(y_val, pred, prob)
 ic = bootstrap(y_val, pred, prob, cfg["n_bootstrap"], seed)

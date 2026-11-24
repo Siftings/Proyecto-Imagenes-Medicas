@@ -34,3 +34,5 @@ TerceraEntrega/informe/*.pdf
 
 # Pesos de modelos entrenados (se regeneran con el código)
 *.pt
+TerceraEntrega/*.pdf
+TerceraEntrega/entrega/
