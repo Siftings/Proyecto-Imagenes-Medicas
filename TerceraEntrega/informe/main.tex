@@ -3,7 +3,6 @@
 %% Compilar en Overleaf con pdfLaTeX + BibTeX. Archivos necesarios:
 %%   main.tex, referencias.bib y figuras/.
 %% Todas las cifras salen de TerceraEntrega/codigo/resultados/ (JSON, CSV y TXT).
-%% Lo marcado con \pendiente{...} es un dato que el equipo debe completar (codigos y programa).
 
 \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
 
@@ -17,6 +16,7 @@
 \usepackage{textcomp}%
 \usepackage{manyfoot}%
 \usepackage{booktabs}%
+\usepackage{needspace}% evita títulos en línea huérfanos al pie de página
 \usepackage{algorithm}%
 \usepackage{algorithmicx}%
 \usepackage{algpseudocode}%
@@ -91,9 +91,9 @@
 \toprule
 \textbf{Integrante} & \textbf{Código} & \textbf{Programa}\\
 \midrule
-Giuseppe Kanyike Buwule & \pendiente{código} & \pendiente{programa}\\
-Daniel Duque            & \pendiente{código} & \pendiente{programa}\\
-Juan David Daza         & \pendiente{código} & \pendiente{programa}\\
+Giuseppe Kanyike Buwule & 00020557917 & Bioingeniería\\
+Daniel Duque            & 00020552621 & Bioingeniería\\
+Juan David Daza         & 00020550532 & Ingeniería de Sistemas\\
 \bottomrule
 \end{tabular}\\[0.8cm]
 \begin{tabular}{rl}
@@ -173,7 +173,7 @@ Partición & Casos (archivos) & Glaucoma & Sano & \% glaucoma & Uso \\
 Entrenamiento & 363 & 94 & 269 & 25,9 & ajuste de todas las versiones \\
 Validación & 91 & 23 & 68 & 25,3 & comparar, elegir y fijar el umbral \\
 Prueba (archivos) & 196 & 51 & 145 & 26,0 & --- \\
-\quad Prueba evaluada & 192 & 49 & 143 & 25,5 & una sola evaluación de la versión elegida \\
+\quad Prueba evaluada & 192 & 49 & 143 & 25,5 & evaluación única de la elegida \\
 \quad Prueba excluida & 4 & 2 & 2 & --- & gemelo en entrenamiento \\
 \midrule
 Total & 650 & 168 & 482 & 25,8 & \\
@@ -280,19 +280,18 @@ Los cuatro trabajos (Tabla~\ref{tab:estado}) sostienen dos decisiones. La primer
 \subsection{Comparación en validación (91 imágenes: 23 glaucoma, 68 sanas)}
 
 \begin{table}[htbp]
-\small
-\caption{Base y variantes sobre las mismas 91 imágenes de validación, con umbral 0,5. Entre paréntesis, el IC 95\,\%. Las dos últimas columnas usan el umbral que conserva la especificidad de la base ($\ge 43/68$). Fuente: \texttt{comparacion\_validacion.csv}}\label{tab:comparacion}
-\resizebox{\textwidth}{!}{%
+\setlength{\tabcolsep}{3pt}%
+\caption{Base y variantes sobre las mismas 91 imágenes de validación, con umbral 0,5. Entre paréntesis, el IC 95\,\%. $\Delta$AUC: diferencia frente a la base (\textit{bootstrap} pareado). AUC ent.: AUC en entrenamiento. Sens.$^{*}$: sensibilidad con el umbral que conserva la especificidad de la base ($\ge 43/68$). Fuente: \texttt{comparacion\_validacion.csv}}\label{tab:comparacion}
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
-Versión & VP/FN/FP/VN & Sens. & Esp. & AUC & $\Delta$AUC vs.\ base & AUC ent. & Sens. (esp $\ge$ base) \\
+Versión & VP/FN/FP/VN & Sens. & Esp. & AUC & $\Delta$AUC & AUC ent. & Sens.$^{*}$ \\
 \midrule
 Base & 16/7/25/43 & 16/23 = 0,696 & 43/68 = 0,632 & 0,667 (0,54--0,78) & --- & 0,649 & 16/23 \\
 V1 & 13/10/11/57 & 13/23 = 0,565 & 57/68 = 0,838 & 0,797 (0,67--0,90) & +0,13 ($-$0,04--0,29) & 1,000 & 21/23 \\
 \textbf{V2} & 17/6/16/52 & 17/23 = 0,739 & 52/68 = 0,765 & \textbf{0,831} (0,74--0,91) & +0,16 (0,04--0,31) & 0,810 & 21/23 \\
 V3 & 9/14/2/66 & 9/23 = 0,391 & 66/68 = 0,971 & 0,837 (0,73--0,93) & +0,17 (0,01--0,36) & 0,999 & 19/23 \\
 \botrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
 Las tres variantes superan a la base en AUC (Tabla~\ref{tab:comparacion} y Figura~\ref{fig:roccomp}). En V2 y V3, el intervalo de la diferencia queda por encima de cero. V1, con $C=1$, memoriza el entrenamiento (AUC de 1,000 en entrenamiento frente a 0,797 en validación), como anticipamos en la Entrega 2 al pasar de 8 a 512 rasgos. La regularización de V2 elimina ese sobreajuste (0,810 frente a 0,831). V3 también memoriza (0,999) y, con umbral 0,5, apenas detecta 9 de 23 glaucomas: sus puntuaciones no quedan calibradas alrededor de ese valor.
@@ -367,6 +366,7 @@ Analizamos dos casos de la versión final en prueba (Figura~\ref{fig:analizados}
 \caption{Casos analizados de V2 en prueba (umbral 0,4834; $n=192$). Arriba: error observado, \texttt{test/580}, un falso negativo. Abajo: caso límite, \texttt{test/183}, un falso positivo a 0,0001 del umbral. A la derecha, el mapa Grad-CAM superpuesto}\label{fig:analizados}
 \end{figure}
 
+\needspace{6\baselineskip}
 \textbf{Caso 1: error observado (\texttt{test/580}).}
 \begin{itemize}
 \item \textbf{Referencia y salida:} glaucoma; $p=0{,}420$, predicción sano (FN), a 0,064 por debajo del umbral. Es el FN más alejado del umbral. Los otros 8 FN están entre 0,437 y 0,482.
@@ -375,6 +375,7 @@ Analizamos dos casos de la versión final en prueba (Figura~\ref{fig:analizados}
 \item \textbf{Cómo comprobarla:} recentrar el recorte en el disco (por ejemplo, en el máximo de brillo suavizado), volver a puntuar sin reentrenar y ver si este caso y los demás FN suben. También se puede repetir el Grad-CAM sobre los 9 FN para ver si la atención cae fuera del disco.
 \end{itemize}
 
+\needspace{6\baselineskip}
 \textbf{Caso 2: caso límite (\texttt{test/183}).}
 \begin{itemize}
 \item \textbf{Referencia y salida:} sano; $p=0{,}4836$, predicción glaucoma (FP). Queda a 0,0001 del umbral, de modo que cualquier variación mínima cambiaría la clase.
@@ -384,6 +385,7 @@ Analizamos dos casos de la versión final en prueba (Figura~\ref{fig:analizados}
 \item \textbf{Análisis exploratorio, sin usarlo para decidir:} con umbral 0,5 la prueba habría dado una sensibilidad de 33/49 y una especificidad de 95/143. El punto de operación es muy sensible a un desplazamiento pequeño del umbral, y fijarlo con solo 91 imágenes lo vuelve frágil.
 \end{itemize}
 
+\needspace{6\baselineskip}
 \textbf{Límites del estudio.}
 \begin{enumerate}
 \item \textbf{Independencia:} sin identificador de paciente no se puede garantizar que una misma persona no esté en dos particiones (Sección~\ref{sec:particion}).
@@ -404,6 +406,7 @@ Analizamos dos casos de la versión final en prueba (Figura~\ref{fig:analizados}
 
 \textbf{Qué no mejoró.} El ajuste fino (V3) no superó a V2 por un margen relevante y memorizó el entrenamiento. En prueba, la especificidad cayó por debajo de la que buscábamos (0,524 frente a 0,632), porque las puntuaciones de V2 están muy concentradas alrededor del umbral.
 
+\needspace{6\baselineskip}
 \textbf{Qué no puede concluirse.}
 \begin{itemize}
 \item La utilidad clínica.
