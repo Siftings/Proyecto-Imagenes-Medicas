@@ -1,0 +1,83 @@
+{
+  "version": "v3",
+  "descripcion": "V3: ResNet-18 con ajuste fino (layer4 + capa final)",
+  "n": 91,
+  "n_glaucoma": 23,
+  "n_sano": 68,
+  "umbral": 0.5,
+  "VP": 9,
+  "FN": 14,
+  "FP": 2,
+  "VN": 66,
+  "denominadores": {
+    "sensibilidad": "9/23",
+    "especificidad": "66/68"
+  },
+  "metricas": {
+    "sensibilidad": {
+      "valor": 0.391304347826087,
+      "IC95": [
+        0.21739130434782608,
+        0.6086956521739131
+      ]
+    },
+    "especificidad": {
+      "valor": 0.9705882352941176,
+      "IC95": [
+        0.9264705882352942,
+        1.0
+      ]
+    },
+    "AUC": {
+      "valor": 0.8369565217391305,
+      "IC95": [
+        0.7276214833759591,
+        0.9296835038363171
+      ]
+    },
+    "F1": {
+      "valor": 0.5294117647058824,
+      "IC95": [
+        0.31226325757575757,
+        0.7224593495934957
+      ]
+    },
+    "exactitud": {
+      "valor": 0.8241758241758241,
+      "IC95": [
+        0.7692307692307693,
+        0.8791208791208791
+      ]
+    }
+  },
+  "bootstrap": {
+    "n_remuestreos": 1000,
+    "semilla": 42,
+    "tipo": "estratificado por clase, percentil"
+  },
+  "AUC_entrenamiento": 0.9994463339397296,
+  "parametros": {
+    "capas_entrenables": [
+      "layer4",
+      "fc"
+    ],
+    "epocas": 20,
+    "batch": 16,
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "aumento": {
+      "flip_horizontal": true,
+      "rotacion_grados": 10,
+      "brillo": 0.2,
+      "contraste": 0.2,
+      "escala_recorte": [
+        0.85,
+        1.0
+      ]
+    }
+  },
+  "tiempo_entrenamiento_s": 226.3,
+  "versiones": {
+    "torch": "2.15.0"
+  }
+}

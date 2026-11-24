@@ -1,0 +1,5 @@
+version,descripcion,particion,n,VP,FN,FP,VN,sensibilidad,sens_den,especificidad,esp_den,AUC,AUC_IC95,F1,AUC_entrenamiento,dAUC_vs_base,dAUC_IC95,umbral_esp_base,sens_con_esp_base,esp_con_esp_base
+base,Línea base: 8 rasgos de color y palidez + LR balanceada (C=1),validacion,91,16,7,25,43,0.696,16/23,0.632,43/68,0.667,0.54-0.78,0.5,0.649,0.0,,0.4979,16/23,43/68
+v1,V1: ResNet-18 congelada (512 rasgos) + LR balanceada (C=1),validacion,91,13,10,11,57,0.565,13/23,0.838,57/68,0.797,0.67-0.90,0.553,1.0,0.13,-0.04-0.29,0.0384,21/23,43/68
+v2,V2: ResNet-18 congelada + LR balanceada (C por CV en entrenamiento),validacion,91,17,6,16,52,0.739,17/23,0.765,52/68,0.831,0.74-0.91,0.607,0.81,0.164,0.04-0.31,0.4834,21/23,43/68
+v3,V3: ResNet-18 con ajuste fino (layer4 + capa final),validacion,91,9,14,2,66,0.391,9/23,0.971,66/68,0.837,0.73-0.93,0.529,0.999,0.17,0.01-0.36,0.015,19/23,43/68

@@ -1,0 +1,31 @@
+{
+  "version": "v2",
+  "descripcion": "V2: ResNet-18 congelada + LR balanceada (C por CV en entrenamiento)",
+  "regla": "mayor AUC de validación; empate si diferencia < 0.01 -> la más simple (orden ['base', 'v1', 'v2', 'v3'])",
+  "AUC_validacion": {
+    "base": 0.667,
+    "v1": 0.797,
+    "v2": 0.831,
+    "v3": 0.837
+  },
+  "umbral": 0.48345,
+  "regla_umbral": "menor umbral con especificidad >= 0.632 en validación",
+  "validacion_con_umbral": {
+    "VP": 21,
+    "FN": 2,
+    "FP": 25,
+    "VN": 43,
+    "denominadores": {
+      "sensibilidad": "21/23",
+      "especificidad": "43/68"
+    }
+  },
+  "preprocesamiento": "RGB -> 224x224 bilineal -> normalización ImageNet -> ResNet-18 (IMAGENET1K_V1)",
+  "archivos_modelo": [
+    "modelo_v2.joblib"
+  ],
+  "sha256": {
+    "modelo_v2.joblib": "a54ccc30e2fa72b7f87aedd47000522e942f60d8323076ee53578c4590632afb"
+  },
+  "fecha_congelado": "2026-11-23T22:27:47"
+}

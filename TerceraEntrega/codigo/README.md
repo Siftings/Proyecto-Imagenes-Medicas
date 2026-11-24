@@ -1,13 +1,17 @@
-# Entrega 2 — Proyecto B: glaucoma en ORIGA-light
+# Entrega final: Proyecto B, glaucoma en ORIGA-light (Equipo 02)
 
-Código de la segunda entrega de Imágenes Médicas (34740, PUJ): inventario de los datos, partición
-entrenamiento/validación/prueba con su verificación, y una línea base simple (8 características de
-color y palidez + regresión logística balanceada) evaluada una sola vez sobre la validación.
-**El conjunto de prueba no se usa en esta entrega.**
+Este es el código de la entrega final de Imágenes Médicas (34740, PUJ). Hace cuatro cosas:
+1. Inventaría el conjunto de imágenes y arma la partición entrenamiento/validación/prueba. Luego comprueba que no haya imágenes compartidas entre particiones.
+2. Compara cuatro versiones del clasificador sobre las mismas 91 imágenes de validación: la línea base y tres variantes.
+3. Congela la versión elegida.
+4. Evalúa esa versión **una sola vez** sobre la prueba reservada.
 
-## 1. Instalación
+La clase positiva es glaucoma (1).
 
-Requiere Python 3.10 o superior. No usa redes neuronales ni GPU.
+## 1. Software e instalación
+
+Se probó con Python 3.13.13, numpy 2.3, pandas 2.3, scikit-learn 1.9.1, Pillow 12, torch 2.15 y torchvision 0.29, en macOS (Apple M4) usando solo la CPU.
+Las versiones exactas de cada ejecución quedan en los JSON de `resultados/`.
 
 ```bash
 python3 -m venv .venv
@@ -15,12 +19,12 @@ source .venv/bin/activate        # en Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## 2. Datos
+La primera vez que se usa ResNet-18, torchvision descarga los pesos públicos de ImageNet (`resnet18-f37072fd.pth`, 45 MB) desde `download.pytorch.org` y los guarda en `~/.cache/torch`. Para eso se necesita internet.
 
-El conjunto **no** se incluye en este repositorio ni en el ZIP. Descárgalo de Kaggle:
-<https://www.kaggle.com/datasets/ferencjuhsz/origa-retinal-fundus-image-dataset>
+## 2. Datos (no se incluyen)
 
-Descomprime y deja la carpeta `archive/` con esta estructura:
+Hay que descargar el conjunto desde Kaggle: <https://www.kaggle.com/datasets/ferencjuhsz/origa-retinal-fundus-image-dataset> (licencia MIT).
+Luego se ubica la carpeta `archive/` así:
 
 ```
 archive/
@@ -30,39 +34,67 @@ archive/
 └── ORIGA_test.csv
 ```
 
-Ajusta `data_dir` en `config.yaml` (por defecto `../archive`, es decir, al lado de esta carpeta).
+La ruta de los datos se configura en `data_dir`, dentro de `config.yaml`. Por defecto es `../archive`, es decir, al lado de la carpeta `codigo/`. Las imágenes se identifican con códigos seudónimos de la forma `train/093` o `test/240`.
 
 ## 3. Ejecución
 
-Desde esta carpeta, en orden:
+La semilla es 42 para todo (partición, bootstrap y torch). Todos los comandos se corren desde esta carpeta.
 
+**A. Datos, partición y línea base (Entrega 2, < 1 min)**
 ```bash
 python 01_inventario.py           # resultados/inventario.csv
-python 02_particion.py            # resultados/particion.csv
-python 03_verificar_particion.py  # resultados/verificacion_particion.txt, figuras/pares_*.png
-python 04_linea_base.py           # caracteristicas.csv, predicciones_validacion.csv, metricas_validacion.json
-python 05_figuras.py              # figuras/casos_validacion.png, matriz_confusion.png, curva_roc.png
-python 06_analisis_error.py       # resultados/analisis_error.txt (cifras del análisis de la Sección 4)
+python 02_particion.py            # resultados/particion.csv (363 / 91 / 196)
+python 03_verificar_particion.py  # verificacion_particion.txt, revision_pares.csv, prueba_excluidos.csv
+python 04_linea_base.py           # base: caracteristicas.csv, predicciones_validacion.csv, metricas_validacion.json, modelos/modelo_base.joblib
+python 05_figuras.py              # figuras de la base en validación (Entrega 2)
+python 06_analisis_error.py       # análisis del FN train/233 de la base
 ```
 
-Todo corre en CPU en menos de un minuto (el paso más lento es el pHash de las 650 imágenes).
+**B. Entrenamiento de las variantes (≈ 6 min en CPU; se puede omitir porque los pesos van en `modelos/`)**
+```bash
+python 07_extraer_cnn.py          # rasgos ResNet-18 congelada (650 x 512)
+python 08_variantes_lr.py         # V1 y V2 -> modelos/modelo_v1.joblib, modelo_v2.joblib
+python 09_ajuste_fino.py          # V3 (ajuste fino, 20 épocas) -> modelos/modelo_v3.pt
+```
 
-## 4. Parámetros (`config.yaml`)
+**C. Comparación, evaluación e inferencia (usa los pesos guardados, < 1 min)**
+```bash
+python 10_comparacion_validacion.py   # tabla base/V1/V2/V3, version_elegida.json (versión + umbral congelados)
+python 11_evaluacion_prueba.py        # SOLO la versión elegida sobre la prueba (192); deja un candado
+python 12_figuras_final.py            # figuras de validación y prueba (incluye Grad-CAM)
+python predecir.py ../archive/ORIGA/test/240.jpg   # inferencia de una imagen con la versión congelada
+```
 
-| Clave | Valor | Uso |
-|---|---|---|
-| `seed` | 42 | partición, bootstrap |
-| `val_size` | 0.2 | fracción de `ORIGA/train` para validación (estratificada) |
-| `img_size` | 256 | lado de la imagen redimensionada |
-| `r_centro`, `r_disco` | 38, 102 | radios (px) de las regiones centro y disco |
-| `C`, `umbral` | 1.0, 0.5 | regresión logística y umbral de decisión (fijos, sin ajuste) |
-| `n_bootstrap` | 1000 | remuestreos para los IC 95 % |
-| `phash_threshold` | 8 | distancia de Hamming máxima para marcar casi duplicados |
-| `phash_threshold_consecutivos` | 12 | igual, solo para códigos consecutivos (n, n+1) |
-| `revision_visual` | listas de pares | conclusión de la revisión a ojo: `mismo_ojo`, `distinto_ojo`, `dudoso` |
+`11_evaluacion_prueba.py` escribe `resultados/prueba_ejecutada.lock` y no vuelve a correr sin `--forzar`. Esto deja constancia de que la prueba se evaluó una sola vez, después de fijar la versión.
+Si se quiere reproducir el resultado sobre una copia nueva del ZIP, se usa `python 11_evaluacion_prueba.py --forzar`. Las cifras deben coincidir con `metricas_prueba.json`.
 
-## 5. Contenido
+**Variación numérica:** en CPU, con la semilla fija, los resultados se repiten exactamente. En GPU o MPS (`cnn.dispositivo` en `config.yaml`), el ajuste fino puede dar diferencias pequeñas en las puntuaciones.
 
-- `comun.py`: lectura de `config.yaml` y rutas compartidas.
-- `resultados/`: tablas y métricas generadas (incluye `prueba_excluidos.csv`, las 4 imágenes de prueba que se excluyen de la evaluación final por tener un gemelo en entrenamiento).
-- `figuras/`: figuras generadas.
+## 4. Versiones comparadas (`config.yaml`)
+
+| Versión | Representación | Clasificador | Qué cambia frente a la base |
+|---|---|---|---|
+| base | 8 rasgos de color y palidez en el disco (256 px) | StandardScaler + LR balanceada, C=1 | — |
+| V1 | 512 rasgos de ResNet-18 congelada (ImageNet, 224 px) | igual que la base (C=1) | solo la representación |
+| V2 | igual que V1 | LR balanceada, C elegido por CV de 5 pliegues **dentro de entrenamiento** | representación + regularización |
+| V3 | ResNet-18 con `layer4` y la capa final ajustadas | salida sigmoide, BCE ponderada, AdamW 1e-4, 20 épocas fijas, aumento | red ajustada a los datos |
+
+Regla de selección, fijada antes de comparar: gana la de mayor AUC en validación. Si la diferencia es menor de 0,01, gana la más simple.
+El umbral de la elegida es el menor que mantiene en validación una especificidad ≥ 0,632, que es la de la base con umbral 0,5.
+
+## 5. Salidas principales
+
+| Archivo | Contenido |
+|---|---|
+| `resultados/particion_final.csv` | inventario y asignación por imagen, más `incluido_en_evaluacion` y el motivo de exclusión (4 de prueba) |
+| `resultados/verificacion_particion.txt` | comprobación de códigos, MD5 y pHash entre particiones |
+| `resultados/comparacion_validacion.csv` | base, V1, V2 y V3 sobre las mismas 91: matriz, sensibilidad y especificidad con denominadores, AUC con IC 95 %, ΔAUC frente a la base |
+| `resultados/predicciones_validacion_todas.csv` | tabla por caso de validación para las 4 versiones |
+| `resultados/version_elegida.json` | versión, umbral, preprocesamiento y SHA-256 de los pesos congelados |
+| `resultados/predicciones_prueba.csv` | tabla por caso de prueba (ID, etiqueta, puntuación, predicción, tipo, incluido) |
+| `resultados/metricas_prueba.json` | métricas de prueba (192 imágenes; también 196 y 191 como análisis de sensibilidad) |
+| `resultados/analisis_comparacion.txt` | errores por exposición, `train/233` y efecto de `train/027` |
+| `modelos/` | `modelo_base.joblib`, `modelo_v1.joblib`, `modelo_v2.joblib` y `modelo_v3.pt` (pesos entrenados) |
+| `figuras/` | figuras del informe; en cada una se indica método, partición y n |
+
+Las figuras muestran imágenes del conjunto, que la copia de Kaggle distribuye con licencia MIT. El ZIP no incluye el conjunto completo.

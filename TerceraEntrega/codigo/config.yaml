@@ -1,4 +1,5 @@
-# Parámetros de la Entrega 2 - Proyecto B (glaucoma, ORIGA-light)
+# Parámetros de la entrega final - Proyecto B (glaucoma, ORIGA-light)
+# Línea base (Entrega 2): img_size, r_centro, r_disco, C, umbral. Variantes: bloques cnn, lr_cv, ajuste_fino.
 # data_dir: carpeta "archive/" descargada de Kaggle (ruta relativa a esta carpeta o absoluta)
 data_dir: ../archive
 seed: 42
@@ -32,3 +33,41 @@ revision_visual:
     - [train/208, train/371]
   dudoso:
     - [train/147, test/175]
+
+# --- Variantes de la entrega final ---
+# Preprocesamiento común a V1-V3 (congelado): RGB -> 224x224 bilineal -> normalización de ImageNet
+cnn:
+  arquitectura: resnet18
+  pesos: IMAGENET1K_V1      # pesos públicos de torchvision (se descargan la primera vez)
+  img_size: 224
+  dispositivo: cpu          # cpu para reproducibilidad; "mps" o "cuda" son más rápidos pero no bit a bit iguales
+  batch: 32
+
+# V2: C elegido por validación cruzada estratificada SOLO dentro de entrenamiento
+lr_cv:
+  # Grilla ampliada hacia abajo: con [1e-4, 1] la CV en entrenamiento elegía el extremo (1e-4)
+  Cs: [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0]
+  folds: 5
+
+# V3: ajuste fino de ResNet-18 (layer4 + capa final); número de épocas fijo, sin early stopping
+ajuste_fino:
+  capas_entrenables: [layer4, fc]
+  epocas: 20
+  batch: 16
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  aumento:
+    flip_horizontal: true
+    rotacion_grados: 10
+    brillo: 0.2
+    contraste: 0.2
+    escala_recorte: [0.85, 1.0]
+
+# Selección (fijada antes de comparar): mayor AUC en validación; si la diferencia con una versión
+# más simple es menor que empate_auc, gana la más simple. Umbral de la elegida: el menor que mantiene
+# en validación una especificidad >= a la de la línea base con umbral 0,5 (43/68 = 0,632).
+seleccion:
+  criterio: AUC_validacion
+  empate_auc: 0.01
+  orden_simplicidad: [base, v1, v2, v3]
+  especificidad_minima: 0.632

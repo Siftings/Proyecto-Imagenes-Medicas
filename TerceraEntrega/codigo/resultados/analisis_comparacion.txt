@@ -1,0 +1,20 @@
+Comparación en validación (n = 91: 23 glaucoma / 68 sanos), umbral 0,5
+version  VP  FN  FP  VN sens_den esp_den   AUC  AUC_IC95  AUC_entrenamiento  dAUC_vs_base  dAUC_IC95 sens_con_esp_base esp_con_esp_base
+   base  16   7  25  43    16/23   43/68 0.667 0.54-0.78              0.649         0.000                        16/23            43/68
+     v1  13  10  11  57    13/23   57/68 0.797 0.67-0.90              1.000         0.130 -0.04-0.29             21/23            43/68
+     v2  17   6  16  52    17/23   52/68 0.831 0.74-0.91              0.810         0.164  0.04-0.31             21/23            43/68
+     v3   9  14   2  66     9/23   66/68 0.837 0.73-0.93              0.999         0.170  0.01-0.36             19/23            43/68
+
+Elegida: v2 (V2: ResNet-18 congelada + LR balanceada (C por CV en entrenamiento)); candidatas por empate: ['v2', 'v3']
+Umbral congelado: 0.4834 -> validación sens 21/23, esp 43/68
+
+Tasa de error (umbral 0,5) por tercil de brillo del disco en validación:
+  base  oscura: 5/31  media: 11/30  clara: 16/30
+  v1    oscura: 5/31  media: 6/30  clara: 10/30
+  v2    oscura: 5/31  media: 5/30  clara: 12/30
+  v3    oscura: 5/31  media: 4/30  clara: 7/30
+
+train/233 (etiqueta 1): base p=0.004, v1 p=1.000, v2 p=0.566, v3 p=0.999
+
+train/027 (etiqueta 0): base p=0.457, v1 p=0.159, v2 p=0.457, v3 p=0.050
+AUC sin train/027 (gemelo en entrenamiento): base 0.665, v1 0.796, v2 0.829, v3 0.839

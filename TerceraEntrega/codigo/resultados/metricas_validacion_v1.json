@@ -1,0 +1,60 @@
+{
+  "version": "v1",
+  "descripcion": "V1: ResNet-18 congelada (512 rasgos) + LR balanceada (C=1)",
+  "n": 91,
+  "n_glaucoma": 23,
+  "n_sano": 68,
+  "umbral": 0.5,
+  "VP": 13,
+  "FN": 10,
+  "FP": 11,
+  "VN": 57,
+  "denominadores": {
+    "sensibilidad": "13/23",
+    "especificidad": "57/68"
+  },
+  "metricas": {
+    "sensibilidad": {
+      "valor": 0.5652173913043478,
+      "IC95": [
+        0.34782608695652173,
+        0.782608695652174
+      ]
+    },
+    "especificidad": {
+      "valor": 0.8382352941176471,
+      "IC95": [
+        0.75,
+        0.9264705882352942
+      ]
+    },
+    "AUC": {
+      "valor": 0.7960358056265985,
+      "IC95": [
+        0.6630434782608697,
+        0.9008951406649616
+      ]
+    },
+    "F1": {
+      "valor": 0.5531914893617021,
+      "IC95": [
+        0.38095238095238093,
+        0.7111111111111111
+      ]
+    },
+    "exactitud": {
+      "valor": 0.7692307692307693,
+      "IC95": [
+        0.6813186813186813,
+        0.8461538461538461
+      ]
+    }
+  },
+  "bootstrap": {
+    "n_remuestreos": 1000,
+    "semilla": 42,
+    "tipo": "estratificado por clase, percentil"
+  },
+  "AUC_entrenamiento": 1.0,
+  "C": 1.0
+}
