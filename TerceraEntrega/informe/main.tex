@@ -1,9 +1,9 @@
-%% Informe Entrega 2 - Proyecto B (glaucoma) - Imagenes Medicas 34740
+%% Informe de la entrega final - Proyecto B (glaucoma) - Imagenes Medicas 34740
 %% Basado en la plantilla Springer Nature (sn-jnl), version 3.1 dic. 2024
 %% Compilar en Overleaf con pdfLaTeX + BibTeX. Archivos necesarios:
-%%   main.tex, referencias.bib (y figuras/ cuando existan).
-%% Todo lo marcado con \pendiente{...} depende de la ejecucion del codigo
-%% o de un dato que el equipo debe confirmar.
+%%   main.tex, referencias.bib y figuras/.
+%% Todas las cifras salen de TerceraEntrega/codigo/resultados/ (JSON, CSV y TXT).
+%% Lo marcado con \pendiente{...} es un dato que el equipo debe completar (codigos y programa).
 
 \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
 
@@ -24,11 +24,11 @@
 \usepackage{array}%
 \usepackage{tabularx}%
 \usepackage{placeins}% \FloatBarrier: ninguna figura o tabla cruza este punto
+\usepackage{tikz}%
+\usetikzlibrary{arrows.meta,positioning}
 
-%% Marcador para contenido que depende del codigo o de un dato por confirmar
+%% Marcador para datos que el equipo debe completar
 \newcommand{\pendiente}[1]{\textcolor{red}{\textbf{[PENDIENTE: #1]}}}
-%% Celda pendiente corta para tablas
-\newcommand{\pend}{\textcolor{red}{\textbf{--}}}
 
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
@@ -69,295 +69,364 @@
 \renewcommand{\contentsname}{Contenido}
 
 %%==================================================================%%
-%% PORTADA (no cuenta dentro de las 6-8 paginas de contenido)       %%
+%% PORTADA (no cuenta dentro de las 8-10 paginas de contenido)      %%
 %%==================================================================%%
 \begin{titlepage}
 \centering
 {\large\textbf{PONTIFICIA UNIVERSIDAD JAVERIANA}\par}
 \vspace{0.3cm}
-{Facultad de Ingeniería -- Programa de Bioingeniería\par}
+{Facultad de Ingeniería -- Departamento de Ingeniería de Sistemas\par}
 \vspace{2.5cm}
 {\Large\textbf{PROYECTO DE IMÁGENES MÉDICAS}\par}
 \vspace{0.4cm}
-{\Large\textbf{ENTREGA 2}\par}
+{\Large\textbf{ENTREGA FINAL}\par}
+\vspace{0.4cm}
+{\large Resultados comprobables y sustentación\par}
 \vspace{1.2cm}
 {\large\textit{Proyecto B: Identificación de glaucoma en imágenes de fondo de ojo}\par}
 \vspace{0.6cm}
-{\large\textbf{Equipo 2}\par}
+{\large\textbf{Equipo 02}\par}
 \vspace{2cm}
+\begin{tabular}{lll}
+\toprule
+\textbf{Integrante} & \textbf{Código} & \textbf{Programa}\\
+\midrule
+Giuseppe Kanyike Buwule & \pendiente{código} & \pendiente{programa}\\
+Daniel Duque            & \pendiente{código} & \pendiente{programa}\\
+Juan David Daza         & \pendiente{código} & \pendiente{programa}\\
+\bottomrule
+\end{tabular}\\[0.8cm]
 \begin{tabular}{rl}
 \textbf{Asignatura:} & Imágenes Médicas -- 34740\\
-\textbf{Profesor:}   & Xavier Díaz\\[0.4cm]
-\textbf{Integrantes:} & Giuseppe Kanyike Buwule\\
-                      & Daniel Duque\\
-                      & Juan David Daza\\
+\textbf{Profesor:}   & Xavier Díaz\\
 \end{tabular}
 \vfill
-{Bogotá D.\,C., octubre de 2026\par}
+{Bogotá D.\,C., noviembre de 2026\par}
 \end{titlepage}
 
 %%==================================================================%%
 %% ENCABEZADO DEL ARTICULO (plantilla sn-jnl)                        %%
 %%==================================================================%%
-\title[Entrega 2 -- Proyecto B -- Glaucoma]{Clasificación de glaucoma en imágenes de fondo de ojo de ORIGA-light: datos, partición y primera línea base}
+\title[Entrega final -- Proyecto B -- Glaucoma]{Clasificación de glaucoma en recortes de fondo de ojo de ORIGA-light: una línea base de color frente a rasgos de ResNet-18}
 
 \author{\fnm{Giuseppe} \sur{Kanyike Buwule}}
 \author{\fnm{Daniel} \sur{Duque}}
 \author{\fnm{Juan David} \sur{Daza}}
 
-\affil{\orgdiv{Facultad de Ingeniería, Programa de Bioingeniería}, \orgname{Pontificia Universidad Javeriana}, \orgaddress{\city{Bogotá D.\,C.}, \country{Colombia}}}
+\affil{\orgdiv{Facultad de Ingeniería, Departamento de Ingeniería de Sistemas}, \orgname{Pontificia Universidad Javeriana}, \orgaddress{\city{Bogotá D.\,C.}, \country{Colombia}}}
 
-\abstract{Este informe documenta la segunda entrega del Proyecto B (equipo 2): el inventario real de la copia de ORIGA-light que usamos, la partición en entrenamiento, validación y prueba con su comprobación de solapamiento, la elección justificada de una línea base y su primera ejecución sobre el subconjunto de validación. La línea base describe cada imagen con ocho medidas de color y brillo de la región del disco óptico, entre ellas la palidez del centro frente al borde, y las clasifica con una regresión logística balanceada. En validación obtuvo un AUC de 0,667 (IC 95\,\%: 0,54--0,78), con sensibilidad de 0,70 y especificidad de 0,63. La comprobación de la partición encontró nueve pares de tomas del mismo ojo, cinco de ellos repartidos entre particiones; las cuatro imágenes de prueba afectadas se excluirán de la evaluación final. El conjunto de prueba se mantiene reservado. Los resultados se presentan como preliminares y no constituyen evidencia de eficacia clínica.}
+\abstract{Estudiamos si se puede clasificar una imagen de fondo de ojo de ORIGA-light como glaucoma o sano (glaucoma es la clase positiva). Partimos de la línea base de la Entrega 2: ocho medidas de color y palidez en la región del disco más una regresión logística balanceada. La comparamos con tres variantes, siempre sobre las mismas 91 imágenes de validación: rasgos de una ResNet-18 preentrenada en ImageNet con la misma regresión (V1); los mismos rasgos con una regularización elegida por validación cruzada dentro del entrenamiento (V2); y el ajuste fino de la red (V3). La línea base obtuvo un AUC de 0,667 y V2 uno de 0,831; la diferencia es de +0,16 (IC 95\,\%: 0,04--0,31). Según la regla de selección fijada de antemano, elegimos V2 y congelamos su umbral en 0,4834. Después la evaluamos una sola vez sobre 192 imágenes de prueba. Detectó 40 de 49 casos de glaucoma (sensibilidad 0,816) y clasificó como sanas 75 de 143 imágenes sanas (especificidad 0,524), con un AUC de 0,751 (IC 95\,\%: 0,66--0,83). Hay señal, pero la especificidad no basta para tamizaje. Además, la copia de los datos no permite verificar que una misma persona no aparezca en dos particiones. El resultado es académico y no valida un diagnóstico clínico autónomo.}
 
-\keywords{glaucoma, fondo de ojo, ORIGA-light, clasificación binaria, características de color, regresión logística}
+\keywords{glaucoma, fondo de ojo, ORIGA-light, clasificación binaria, ResNet-18, aprendizaje por transferencia, regresión logística}
 
 \maketitle
 
 %%==================================================================%%
-\section{Datos utilizados}\label{sec:datos}
+\section{Objetivo y datos}\label{sec:datos}
 %%==================================================================%%
 
-Trabajamos con ORIGA-light, el conjunto de fondo de ojo publicado por el Singapore Eye Research Institute (SERI) \cite{zhang2010origa}. Como la fuente oficial solo entrega los datos bajo solicitud y esa solicitud no fue respondida a tiempo, usamos una copia pública en Kaggle, tal como se explicó en la Entrega 1. Esta vez revisamos la copia completa con un script de inventario (\texttt{01\_inventario.py}, incluido en el ZIP de evidencias), que abre cada imagen, la cruza con los archivos CSV de etiquetas y calcula un hash MD5 por archivo. La Tabla~\ref{tab:datos} resume lo encontrado.
+\textbf{Pregunta del proyecto.} ¿Es posible identificar la presencia de glaucoma a partir de imágenes digitales de fondo de ojo mediante un método de clasificación, usando como referencia las etiquetas clínicas del conjunto de datos?
+
+\textbf{Tarea.} La \emph{entrada} es un recorte RGB de 8 bits en JPG, centrado en el disco óptico. La \emph{referencia} es la etiqueta binaria \texttt{glaucoma} del CSV que acompaña al conjunto, asignada por el Singapore Eye Research Institute (SERI) \cite{zhang2010origa}. La \emph{salida} es una puntuación continua en $[0,1]$ y una clase: \textbf{glaucoma (clase positiva, 1)} si la puntuación es mayor o igual al umbral congelado antes de la prueba, y sano (0) en caso contrario. El sistema es un ejercicio académico de apoyo y no un diagnóstico.
+
+\textbf{Datos.} Usamos la copia pública de ORIGA-light en Kaggle \cite{kaggleoriga}, porque el SERI solo entrega los datos bajo solicitud y no respondió a la nuestra en todo el semestre. La Tabla~\ref{tab:datos} resume la copia, revisada con \texttt{01\_inventario.py}, que abre cada imagen, la cruza con los CSV y calcula su MD5.
 
 \begin{table}[htbp]
-\caption{Resumen de la copia de datos utilizada}\label{tab:datos}
-\begin{tabularx}{\textwidth}{@{}L{3.6cm}X@{}}
+\small
+\caption{Copia de datos utilizada (salida de \texttt{01\_inventario.py} y \texttt{03\_verificar\_particion.py}; todas las imágenes)}\label{tab:datos}
+\begin{tabularx}{\textwidth}{@{}L{3.4cm}Y@{}}
 \toprule
 Aspecto & Detalle \\
 \midrule
-Nombre y versión & \textit{ORIGA Retinal Fundus Image Dataset}, copia publicada en Kaggle por el usuario \texttt{ferencjuhsz}. La página no declara número de versión; se usa la versión disponible a la fecha de acceso. \\
-Fuente original & ORIGA-light, SERI, descrito por Zhang et al.\ (2010) \cite{zhang2010origa}. Acceso oficial bajo solicitud. \\
-Enlace & \url{https://www.kaggle.com/datasets/ferencjuhsz/origa-retinal-fundus-image-dataset} \cite{kaggleoriga} \\
-Fecha de acceso & 15 de octubre de 2026 \\
-Archivos & 650 imágenes JPG (454 en \texttt{ORIGA/train}, 196 en \texttt{ORIGA/test}) y 2 archivos CSV (\texttt{ORIGA\_train.csv}, \texttt{ORIGA\_test.csv}). \\
-Casos y pacientes & 650 imágenes, cada una con un código numérico único entre 001 y 650. La copia no trae identificador de paciente ni de ojo, así que no es posible contar pacientes. \\
-Etiquetas & Columna \texttt{glaucoma} con valores 0 (sano) y 1 (glaucoma): 168 positivas y 482 negativas. \\
-Máscaras & No incluidas en esta copia. Los CSV solo tienen las columnas \texttt{ImageName} y \texttt{glaucoma}. \\
-Características & Todas las imágenes son RGB y cuadradas, con 158 tamaños distintos entre 255$\times$255 y 493$\times$493 píxeles. Por inspección visual de una muestra, son recortes centrados en el disco óptico y no retinografías completas. \\
-Faltantes, ilegibles, sin referencia, repetidos & 0 imágenes listadas en los CSV sin archivo; 0 archivos sin etiqueta; 0 archivos ilegibles; 0 nombres repetidos; 0 archivos con contenido idéntico (MD5). Sí hay repeticiones no exactas: 9 pares de imágenes son dos tomas del mismo ojo (Sección~\ref{sec:particion}). No se excluyó ninguna imagen del entrenamiento ni de la validación. \\
-Condiciones de uso & La copia de Kaggle declara licencia MIT \cite{mitlicense}. La fuente original no publica términos de redistribución. \\
+Nombre y versión & \textit{ORIGA Retinal Fundus Image Dataset}, copia de Kaggle (usuario \texttt{ferencjuhsz}), sin número de versión; descargada el 15 de octubre de 2026 \\
+Fuente original y uso & ORIGA-light, SERI, Zhang et al.\ (2010) \cite{zhang2010origa}. La copia declara licencia MIT \cite{mitlicense}; la fuente original no publica términos de redistribución \\
+Archivos & 650 JPG (454 en \texttt{ORIGA/train}, 196 en \texttt{ORIGA/test}) y 2 CSV (\texttt{ImageName}, \texttt{glaucoma}). Sin máscaras \\
+Imágenes & RGB, cuadradas, de 255$\times$255 a 493$\times$493 px; recortes del disco óptico, no retinografías completas \\
+Etiquetas & 168 glaucoma y 482 sanas (25,8\,\%) \\
+Unidades independientes & No hay identificador de paciente ni de ojo. Hay 650 imágenes y, como 9 pares son dos tomas del mismo ojo, a lo sumo 641 ojos distintos. El número de personas no es verificable \\
+Calidad & 0 faltantes, 0 sin etiqueta, 0 ilegibles, 0 duplicados exactos (MD5); 9 pares del mismo ojo; 1 par con etiquetas distintas (\texttt{train/050}--\texttt{train/052}) \\
+Exclusiones & 4 imágenes de prueba (\texttt{test/158}, \texttt{test/170}, \texttt{test/181}, \texttt{test/313}) por tener un gemelo en entrenamiento. Ninguna exclusión en entrenamiento ni en validación \\
 \botrule
 \end{tabularx}
 \end{table}
 
-Respecto a la Entrega 1 hay una corrección: el rango de resolución que reportamos entonces (275$\times$275 a 443$\times$443) era una estimación hecha con unas pocas imágenes. El inventario completo da 255$\times$255 a 493$\times$493. También confirmamos que la copia no contiene las retinografías originales de alta resolución, sino recortes alrededor del disco óptico, lo cual influye en el preprocesamiento (Sección~\ref{sec:metodo}).
-
-Los conteos por partición original de la copia coinciden con lo reportado en la Entrega 1: el subconjunto \texttt{train} tiene 454 imágenes (117 glaucoma, 337 sanas) y \texttt{test} tiene 196 (51 glaucoma, 145 sanas). El total de 168 casos de glaucoma coincide con la cifra de la publicación original, lo que respalda que la copia corresponde a ORIGA-light completo.
-
-\paragraph{Permiso para compartir ejemplos.} Aunque la copia se distribuye con licencia MIT, no pudimos confirmar que el SERI autorice la redistribución. Por prudencia, el ZIP de evidencias \textbf{no incluye el conjunto de datos}: solo contiene el código, las tablas (que referencian las imágenes por su código, por ejemplo \texttt{train/093}) y las figuras con los tres casos ilustrativos y los pares de imágenes repetidas. Para reproducir el trabajo, el conjunto se descarga del enlace de la Tabla~\ref{tab:datos}.
+Las tablas del ZIP identifican cada imagen con un código seudónimo (\texttt{train/093}, \texttt{test/240}). El ZIP no incluye el conjunto de datos. Las figuras sí muestran algunas imágenes, lo que permite la licencia MIT de la copia.
 
 %%==================================================================%%
-\section{Separación de los datos}\label{sec:particion}
+\section{Partición y control de fuga}\label{sec:particion}
 %%==================================================================%%
 
-ORIGA-light no tiene una partición oficial única: distintos trabajos dividen las 650 imágenes de forma diferente. Decidimos respetar la división que trae la copia y construir la validación a partir del entrenamiento:
-
+Mantenemos la partición de la Entrega 2, sin cambios.
 \begin{itemize}
-\item \textbf{Prueba:} las 196 imágenes de \texttt{ORIGA/test}. No se han usado en ningún paso de este informe y quedan reservadas para la evaluación final.
-\item \textbf{Validación:} 20\,\% de \texttt{ORIGA/train}, elegido con muestreo estratificado por etiqueta (función \texttt{train\_test\_split} de scikit-learn \cite{pedregosa2011scikit}, \texttt{test\_size=0.2}, \texttt{random\_state=42}), para conservar la proporción de glaucoma.
-\item \textbf{Entrenamiento:} el 80\,\% restante de \texttt{ORIGA/train}. Es el único subconjunto con el que se ajusta el método.
+\item \textbf{Prueba:} las 196 imágenes de \texttt{ORIGA/test}.
+\item \textbf{Validación:} el 20\,\% de \texttt{ORIGA/train}, estratificado por etiqueta (\texttt{train\_test\_split}, \texttt{test\_size=0.2}, \texttt{random\_state=42}) \cite{pedregosa2011scikit}.
+\item \textbf{Entrenamiento:} el resto de \texttt{ORIGA/train}.
 \end{itemize}
-
-La asignación queda guardada en \texttt{particion.csv}, con una fila por imagen (código, partición y etiqueta). La Tabla~\ref{tab:particion} muestra los conteos.
+Como hay un archivo por imagen, el número de casos y el de archivos coinciden. La asignación está en \texttt{particion\_final.csv}, con una fila por imagen y las columnas \texttt{incluido\_en\_evaluacion} y \texttt{motivo\_exclusion} (Tabla~\ref{tab:particion}).
 
 \begin{table}[htbp]
-\caption{Conteos por partición. Como la copia no identifica pacientes, la unidad contada es la imagen}\label{tab:particion}
-\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lcccc}
+\caption{Partición final. Unidad: imagen (= archivo). Fuente: \texttt{particion\_final.csv}}\label{tab:particion}
+\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lccccc}
 \toprule
-Partición & Imágenes & Glaucoma (1) & Sano (0) & \% glaucoma \\
+Partición & Casos (archivos) & Glaucoma & Sano & \% glaucoma & Uso \\
 \midrule
-Entrenamiento & 363 & 94 & 269 & 25,9 \\
-Validación    & 91  & 23 & 68  & 25,3 \\
-Prueba (reservada) & 196 & 51 & 145 & 26,0 \\
+Entrenamiento & 363 & 94 & 269 & 25,9 & ajuste de todas las versiones \\
+Validación & 91 & 23 & 68 & 25,3 & comparar, elegir y fijar el umbral \\
+Prueba (archivos) & 196 & 51 & 145 & 26,0 & --- \\
+\quad Prueba evaluada & 192 & 49 & 143 & 25,5 & una sola evaluación de la versión elegida \\
+\quad Prueba excluida & 4 & 2 & 2 & --- & gemelo en entrenamiento \\
 \midrule
-Total & 650 & 168 & 482 & 25,8 \\
+Total & 650 & 168 & 482 & 25,8 & \\
 \botrule
 \end{tabular*}
-\footnotetext{Los conteos de entrenamiento y validación corresponden a la división estratificada descrita en el texto y coinciden con la salida de \texttt{02\_particion.py}. De las 196 imágenes de prueba, 4 se excluirán de la evaluación final por tener un gemelo en entrenamiento (ver más abajo); la prueba efectiva será de 192 (49 glaucoma, 143 sanas).}
 \end{table}
 
-\subsection*{Comprobación de que un mismo caso no aparece en dos partes}
-
-La guía pide mantener juntos ambos ojos y las visitas de una persona. En esta copia no podemos hacerlo directamente, porque no hay identificador de paciente ni indicación de ojo derecho o izquierdo, y no queremos inventar uno. En la Entrega 1 asumimos, con base en la descripción de la fuente, que cada imagen corresponde a una persona distinta. Las comprobaciones de esta entrega muestran que esa suposición \textbf{no se cumple del todo}.
-
-Con el script \texttt{03\_verificar\_particion.py} comprobamos:
-
+\textbf{Comprobación de no solapamiento} (\texttt{03\_verificar\_particion.py}, salida en \texttt{verificacion\_particion.txt}):
 \begin{enumerate}
-\item \textbf{Códigos de imagen:} la intersección de nombres entre entrenamiento, validación y prueba es vacía.
-\item \textbf{Archivos idénticos:} no hay dos archivos con el mismo hash MD5 en todo el conjunto, ni dentro de una partición ni entre particiones.
-\item \textbf{Casi duplicados:} se calcula un hash perceptual (pHash de 64 bits) de cada imagen y se listan los pares cuya distancia de Hamming sea menor o igual a 8. Entre particiones distintas se compararon 122\,017 pares (mediana de la distancia: 28) y 4 quedaron bajo el umbral; dentro de una misma partición quedaron otros 5, que no son fuga pero sí repeticiones. Al revisarlos a ojo, observamos que las repeticiones aparecían con números de imagen vecinos, así que añadimos una segunda búsqueda: los 649 pares de códigos consecutivos ($n$, $n+1$) con distancia menor o igual a 12. Encontramos 8 pares, uno de ellos (\texttt{train/026} y \texttt{train/027}) por encima del primer umbral.
+\item \textbf{Códigos:} la intersección de códigos entre las tres particiones está vacía.
+\item \textbf{Duplicados exactos:} no hay dos archivos con el mismo MD5.
+\item \textbf{Repeticiones no exactas:} buscamos pares con pHash a una distancia de Hamming $\le 8$ (122\,017 pares entre particiones) y pares de códigos consecutivos a distancia $\le 12$, y luego revisamos a ojo todos los pares marcados. \textbf{Nueve pares son dos tomas del mismo ojo}, y cinco de ellos cruzan particiones (Figura~\ref{fig:pares}): uno entre entrenamiento y validación (\texttt{train/026}--\texttt{train/027}) y cuatro entre entrenamiento y prueba.
 \end{enumerate}
-
-Revisamos visualmente todos los pares marcados. \textbf{Nueve pares son dos tomas del mismo ojo}: muestran el mismo trazado de vasos, con distinta exposición o un recorte algo desplazado. Cuatro quedan dentro de entrenamiento y cinco cruzan particiones (Figura~\ref{fig:pares}): uno entre entrenamiento y validación (\texttt{train/026}--\texttt{train/027}) y cuatro entre entrenamiento y prueba (\texttt{test/158}, \texttt{test/170}, \texttt{test/181} y \texttt{test/313}). Otros dos pares marcados resultaron ser ojos distintos y uno (\texttt{train/147}--\texttt{test/175}) quedó como dudoso. En uno de los pares internos de entrenamiento (\texttt{train/050}--\texttt{train/052}) las dos tomas tienen \textbf{etiquetas distintas} (glaucoma y sano). Con esta copia no podemos saber si es un error de etiqueta o si son tomas de momentos distintos con diagnósticos distintos, pero en cualquier caso muestra que las etiquetas no son del todo consistentes. La conclusión de la revisión queda registrada en \texttt{config.yaml} y en \texttt{revision\_pares.csv}.
+Las cuatro imágenes de prueba con gemelo se excluyen de la evaluación. El caso de validación \texttt{train/027} se mantiene, y su efecto se mide en la Sección~\ref{sec:resultados}. La regla y la conclusión de la revisión visual quedan en \texttt{config.yaml} y en \texttt{revision\_pares.csv}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figuras/pares_mismo_ojo.png}
-\caption{Los cinco pares del mismo ojo que cruzan particiones. Cada columna es un par (arriba y abajo), con su partición, su etiqueta ($y$) y la distancia pHash ($d$)}\label{fig:pares}
+\includegraphics[width=0.92\textwidth]{figuras/pares_mismo_ojo.png}
+\caption{Los cinco pares del mismo ojo que cruzan particiones (todas las particiones). Cada columna es un par, con su partición, su etiqueta ($y$) y su distancia pHash ($d$). Los cuatro casos de prueba se excluyen de la evaluación}\label{fig:pares}
 \end{figure}
 
-\textbf{Decisión.} Mantenemos la partición (363/91/196) para no cambiar el diseño ya planteado, y tratamos la fuga así: (i) las 4 imágenes de prueba con un gemelo en entrenamiento se \textbf{excluirán de la evaluación final}, que se hará sobre 192 imágenes (lista en \texttt{prueba\_excluidos.csv}); (ii) el caso de validación \texttt{train/027} se mantiene, pero reportamos su efecto en la Sección~\ref{sec:piloto}. El pHash no detecta los dos ojos de una misma persona, que pueden verse distintos. Para resolverlo de fondo, mantenemos la solicitud de acceso al SERI, cuya versión podría traer el identificador de paciente y el ojo. Si llega antes de la entrega final, repetiremos la partición agrupando por paciente.
-
-\subsection*{Cómo evitamos la fuga de datos}
-
-Todo lo que se aprende de los datos se estima solo con el subconjunto de entrenamiento: la media y la desviación usadas para estandarizar las características y los coeficientes de la regresión logística. Los demás parámetros (tamaño de imagen, radios de las regiones, $C=1$ y umbral de 0,5) se fijaron de antemano y no se ajustaron mirando la validación. La validación se usa una sola vez, para el resultado de la Sección~\ref{sec:piloto}, y la prueba no se ha tocado: para buscar repeticiones solo se usaron los archivos, no las predicciones del modelo.
+\textbf{Límite declarado.} La guía pide mantener juntos los ojos, las visitas y las repeticiones de una persona. Con esta copia \textbf{no es verificable}: no hay identificador de paciente ni de ojo, y el SERI no respondió la solicitud de la versión oficial. El pHash detecta tomas casi iguales del mismo ojo, pero no los dos ojos de una misma persona, que pueden verse distintos. Por eso no podemos descartar que la prueba contenga el otro ojo de alguien que está en entrenamiento, lo que podría inflar el resultado. Además, todo lo que se aprende de los datos (estandarización, coeficientes, elección de $C$, pesos de la red) se ajusta solo con entrenamiento. La validación se usa para comparar versiones y fijar el umbral, y la prueba se usó una única vez (Sección~\ref{sec:metodo}).
 
 %%==================================================================%%
-\section{Método elegido}\label{sec:metodo}
+\section{Método y comparación}\label{sec:metodo}
 %%==================================================================%%
 
-\subsection{Trabajos técnicos de referencia}
+\subsection{Flujo y versiones}
 
-La Tabla~\ref{tab:estado} resume tres trabajos que abordan la detección de glaucoma en fondo de ojo y que sirven de punto de comparación para nuestra elección.
+La Figura~\ref{fig:flujo} resume el flujo. La línea base es la de la Entrega 2. El \textbf{cambio principal} de las variantes es la representación de la imagen: las 8 medidas hechas a mano se reemplazan por los 512 rasgos que produce una ResNet-18 \cite{he2016resnet} preentrenada en ImageNet \cite{deng2009imagenet}. Esa red se usa como extractor fijo y conserva el mismo clasificador. Así, V1 aísla el efecto de la representación. V2 cambia además la regularización, y V3 deja que la red se adapte a los datos (Tabla~\ref{tab:versiones}).
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  caja/.style={draw, rounded corners=2pt, align=center, font=\footnotesize, text width=2.95cm, minimum height=2.2cm, fill=#1},
+  caja/.default=white, flecha/.style={-{Stealth[length=2.2mm]}, thick}]
+\node[caja=blue!6] (in) {\textbf{Entrada}\\ recorte JPG RGB del disco\\ + etiqueta del CSV};
+\node[caja=blue!6, right=0.45cm of in] (pre) {\textbf{Preparación}\\ base: 256$\times$256, $[0,1]$\\ V1--V3: 224$\times$224, normalización ImageNet};
+\node[caja=orange!8, right=0.45cm of pre] (met) {\textbf{Método}\\ base: 8 rasgos + LR\\ V1/V2: ResNet-18 fija + LR\\ V3: ajuste fino};
+\node[caja=green!8, right=0.45cm of met] (ev) {\textbf{Evaluación}\\ validación (91): comparar, elegir, fijar umbral\\ prueba (192): una vez};
+\draw[flecha] (in) -- (pre); \draw[flecha] (pre) -- (met); \draw[flecha] (met) -- (ev);
+\end{tikzpicture}
+\caption{Flujo de procesamiento: entrada $\rightarrow$ preparación $\rightarrow$ método $\rightarrow$ evaluación. El ajuste usa solo las 363 imágenes de entrenamiento}\label{fig:flujo}
+\end{figure}
 
 \begin{table}[htbp]
-\caption{Comparación de trabajos técnicos relacionados}\label{tab:estado}
-\begin{tabularx}{\textwidth}{@{}L{2.2cm}YYY@{}}
+\small
+\caption{Versiones comparadas. Todas se ajustan con las 363 imágenes de entrenamiento y usan la semilla 42}\label{tab:versiones}
+\begin{tabularx}{\textwidth}{@{}L{1.3cm}YYL{3.3cm}@{}}
 \toprule
-Autor y año & Datos y tarea & Método y métrica & Limitación para nuestro proyecto \\
+Versión & Representación & Clasificador y parámetros & Cambio frente a la base \\
 \midrule
-Cheng et al., 2013 \cite{cheng2013superpixel} & SiMES (650 imágenes, base de ORIGA) y SCES; segmentación de disco y copa ópticos para tamizaje & Clasificación de superpíxeles con histogramas y rasgos centro-entorno; CDR a partir de la segmentación. AUC de 0,800 y 0,822 en las dos bases & Necesita contornos de disco y copa para entrenar, y nuestra copia no los trae \\
+Base & 8 rasgos: media y desviación de R, G y B en el disco (radio 102 px) y palidez centro/anillo en G y R (Entrega 2) & \texttt{StandardScaler} + regresión logística, \texttt{class\_weight="balanced"}, $C=1$ & --- \\
 \addlinespace
-Chen et al., 2015 \cite{chen2015glaucoma} & ORIGA y SCES; clasificación glaucoma/sano & CNN de 6 capas (4 convolucionales y 2 totalmente conectadas) con \textit{dropout} y aumento de datos. AUC de 0,831 en ORIGA y 0,887 en SCES & Entrena la red desde cero y su partición de ORIGA no es la nuestra, así que las cifras no son comparables directamente \\
+V1 & 512 rasgos de \textit{avgpool} de ResNet-18 congelada (\texttt{IMAGENET1K\_V1}) & igual que la base ($C=1$) & solo la representación \\
 \addlinespace
-Fu et al., 2018 \cite{fu2018denet} & Entrena con ORIGA (650) y prueba en SCES (1676) y SINDI (5783); tamizaje de glaucoma & DENet: ensamble de 4 ramas (imagen completa con ResNet-50, segmentación del disco, región local del disco y transformación polar). AUC de 0,918 en SCES y 0,817 en SINDI & Requiere la retinografía completa y máscaras del disco; nosotros solo tenemos recortes sin máscaras \\
+V2 & igual que V1 & igual, con $C\in\{10^{-6},\dots,1\}$ elegido por CV estratificada de 5 pliegues \textbf{dentro de entrenamiento} (AUC): $C=10^{-4}$ & representación + regularización \\
+\addlinespace
+V3 & ResNet-18 con \texttt{layer4} y una capa final de 1 salida entrenables & BCE con \texttt{pos\_weight} $=269/94$, AdamW \cite{loshchilov2019adamw} ($\text{lr}=10^{-4}$, \textit{weight decay} $10^{-4}$), lote 16, \textbf{20 épocas fijas} sin \textit{early stopping}; aumento: volteo horizontal, rotación $\pm10^\circ$, brillo y contraste $\pm20\,\%$, recorte de 85--100\,\% & la red se ajusta a los datos \\
 \botrule
 \end{tabularx}
 \end{table}
 
-Los tres trabajos usan las mismas imágenes de origen que nosotros (el estudio SiMES y ORIGA), pero cada uno depende de algo que nuestra copia no tiene. Cheng et al.\ y la rama de segmentación de Fu et al.\ necesitan contornos de disco y copa marcados por especialistas, y Fu et al.\ además trabaja sobre la retinografía completa. Chen et al.\ sí clasifica directamente, pero entrena una red desde cero, lo que con nuestras 363 imágenes de entrenamiento implica un riesgo alto de sobreajuste. De ellos tomamos dos ideas: que la región del disco concentra la información útil (Cheng et al.\ y Fu et al.), por lo que nuestras medidas se calculan alrededor del centro del recorte, y que el AUC es la métrica estándar para comparar, que también reportamos. Sus cifras sirven como referencia de lo que se puede lograr, no como comparación directa, porque usan particiones y versiones de los datos distintas a la nuestra.
+En V2, la primera grilla de $C$ ($10^{-4}$ a 1) dejó el óptimo de la CV en su extremo inferior. La ampliamos hacia abajo, hasta $10^{-6}$, y el óptimo siguió en $10^{-4}$ (AUC de CV de 0,712). Esa decisión se tomó mirando solo la CV dentro de entrenamiento, pero la declaramos porque ocurrió después de ver la primera ejecución.
 
-\subsection{Por qué esta línea base}
-
-Para detectar glaucoma en fondo de ojo, la literatura sigue sobre todo dos caminos. El primero segmenta el disco y la copa ópticos y calcula la relación copa/disco (CDR). El segundo clasifica la imagen con una red convolucional. Para esta primera prueba no usamos ninguno de los dos y empezamos por algo más simple: describir cada imagen con unas pocas medidas de color y brillo y dejar que un clasificador lineal decida.
-
-La idea sale del propio problema. El glaucoma agranda la copa óptica, que es la zona central y más pálida del disco. Como nuestras imágenes ya están recortadas alrededor del disco (Sección~\ref{sec:datos}), una copa grande debería notarse como un centro más brillante con respecto a lo que lo rodea, y como un cambio en el color general de la región. Si estas medidas tan simples separan algo las clases, tenemos una referencia; si no, aprendemos que se necesita una representación más rica.
-
-Las razones para elegirla son:
-
-\begin{itemize}
-\item \textbf{Se puede explicar y revisar:} cada característica tiene un significado visual (por ejemplo, ``qué tan pálido es el centro'') y el clasificador asigna un peso a cada una, que podemos inspeccionar.
-\item \textbf{Es posible con los datos que tenemos:} la ruta del CDR necesita máscaras de disco y copa, y esta copia no las trae.
-\item \textbf{Se adapta al tamaño de la muestra:} con 363 imágenes de entrenamiento, un modelo con 8 características y 9 parámetros tiene poco riesgo de memorizar los datos.
-\item \textbf{Permite medir el AUC:} la regresión logística entrega una probabilidad continua, no solo una clase.
-\end{itemize}
-
-\textbf{Alternativas descartadas por ahora.} (i) Las redes convolucionales, ya sean preentrenadas o entrenadas desde cero, que quedan como cambio principal para la entrega final (Sección~\ref{sec:siguiente}): primero necesitamos una referencia sencilla contra la cual medir si la complejidad adicional vale la pena. (ii) La ruta basada en CDR, descartada mientras no tengamos máscaras de referencia.
-
-Como punto de comparación mínimo, también reportamos el clasificador trivial que siempre responde ``sano''. Con el desbalance de la validación acierta en el 74,7\,\% de los casos (68 de 91), pero su sensibilidad es cero. Esto muestra por qué la exactitud por sí sola no sirve para este problema.
-
-\subsection{Pasos del método y parámetros}
-
+\textbf{Protocolo de selección (fijado en \texttt{config.yaml} antes de comparar).}
 \begin{enumerate}
-\item \textbf{Entrada:} imagen JPG RGB de 8 bits, leída con Pillow, y su etiqueta del CSV.
-\item \textbf{Preparación:} redimensionado a 256$\times$256 píxeles (interpolación bilineal) para que todas las imágenes tengan la misma escala, ya que su tamaño original varía entre 255 y 493 píxeles. Los valores se pasan a escala $[0,1]$. No se aplica ninguna otra corrección.
-\item \textbf{Regiones:} sobre la imagen de 256$\times$256 se definen dos zonas circulares concéntricas al centro de la imagen: un \textit{centro} de radio 38 píxeles (15\,\% del lado), que aproxima la copa, y un \textit{anillo} entre 38 y 102 píxeles (15\,\% a 40\,\% del lado), que aproxima el borde del disco. Se ignoran las esquinas, que suelen ser retina de fondo.
-\item \textbf{Características (8 por imagen):}
-  \begin{itemize}
-  \item media y desviación estándar de los canales rojo, verde y azul dentro del círculo de radio 102 píxeles (6 valores);
-  \item \textit{palidez central} en el canal verde: brillo medio del centro dividido por el brillo medio del anillo (1 valor);
-  \item la misma relación en el canal rojo (1 valor).
-  \end{itemize}
-\item \textbf{Clasificador:} estandarización (\texttt{StandardScaler}) y regresión logística de scikit-learn \cite{pedregosa2011scikit} con los valores por defecto ($C=1$) y \texttt{class\_weight=}\allowbreak\texttt{"balanced"}, para que la clase glaucoma (aprox. 26\,\%) pese lo mismo que la clase sana. En esta primera versión no se ajusta ningún hiperparámetro.
-\item \textbf{Decisión:} se predice glaucoma si la probabilidad es mayor o igual a 0,5. El umbral queda fijo y no se optimiza.
-\item \textbf{Evaluación:} con el modelo entrenado sobre las 363 imágenes de entrenamiento, se predicen una sola vez las 91 imágenes de validación. Se reportan la matriz de confusión con conteos, la sensibilidad, la especificidad, el AUC-ROC \cite{fawcett2006roc} y el F1 de la clase glaucoma, con intervalos de confianza del 95\,\% por \textit{bootstrap} (1000 remuestreos).
+\item Gana la versión con mayor AUC en las 91 imágenes de validación. Si otra más simple queda a menos de 0,01, gana la más simple. El orden de simplicidad es base $<$ V1 $<$ V2 $<$ V3.
+\item El umbral de la elegida es el menor que mantiene en validación una especificidad $\ge 0{,}632$, la de la línea base con umbral 0,5. Así se cumple el criterio secundario anunciado en la Entrega 2: más sensibilidad sin perder especificidad.
+\item La versión, el preprocesamiento, el umbral y el SHA-256 de los pesos se guardan en \texttt{version\_elegida.json}.
+\item \texttt{11\_evaluacion\_prueba.py} verifica esos hashes, evalúa la prueba y deja un candado (\texttt{prueba\_ejecutada.lock}) que impide repetir la evaluación sin dejar registro.
 \end{enumerate}
 
-Todos los parámetros y la semilla (\texttt{42}) están en \texttt{config.yaml}. El método solo necesita NumPy, Pillow y scikit-learn, y se ejecuta en segundos en un computador personal. Los resultados de este informe se obtuvieron en un Mac mini con chip Apple M4 y 16 GB de memoria unificada, usando solo la CPU, con Python 3.14.7, NumPy 2.5.4, Pillow 12.3.0 y scikit-learn 1.9.1. Extraer las características y entrenar el modelo tarda unos 5 segundos.
+\textbf{Métricas.} Con glaucoma como positivo: sensibilidad $=$ VP/(VP+FN), especificidad $=$ VN/(VN+FP), F1 de la clase glaucoma y AUC-ROC \cite{fawcett2006roc} sobre la puntuación continua. Para cada métrica damos el intervalo de confianza del 95\,\% por \textit{bootstrap} estratificado por clase (1000 remuestreos, percentiles). La diferencia de AUC frente a la base se estima con un \textit{bootstrap} pareado sobre los mismos casos. Cuando un denominador es cero, la métrica se reporta como no calculable. La exactitud no se usa para decidir, porque el clasificador que siempre responde ``sano'' alcanza 0,747 en validación.
 
+\textbf{Software y equipo.} Python 3.13.2, NumPy 2.5.5, pandas 3.1.1, Pillow 13.0, scikit-learn 1.9.1 \cite{pedregosa2011scikit}, PyTorch 2.15.0 \cite{paszke2019pytorch} y torchvision 0.29.2. Todo corrió en la CPU de un portátil Apple M2 con 8 GB. Extraer los rasgos de las 650 imágenes tarda 14\,s y el ajuste fino de V3, 226\,s. En CPU, con la semilla fija, los resultados se repiten exactamente.
 
-%%==================================================================%%
-\section{Primera ejecución y análisis}\label{sec:piloto}
-%%==================================================================%%
-
-La línea base se ejecutó sobre el subconjunto de validación completo: 91 imágenes, 23 con glaucoma y 68 sanas. Ninguna de ellas participó en el entrenamiento del clasificador. Los resultados son \textbf{preliminares}: con solo 23 casos positivos, un error más o uno menos cambia la sensibilidad en más de 4 puntos porcentuales, por lo que los intervalos de confianza son amplios. No deben leerse como evidencia de eficacia clínica.
+\subsection{Trabajos técnicos de referencia}
 
 \begin{table}[htbp]
-\caption{Matriz de confusión sobre la validación ($n = 91$), umbral 0,5}\label{tab:confusion}
+\small
+\caption{Trabajos técnicos relacionados (actualizada desde la Entrega 2)}\label{tab:estado}
+\begin{tabularx}{\textwidth}{@{}L{2.1cm}YYY@{}}
+\toprule
+Autor y año & Datos y tarea & Método y métrica & Relación con nuestras decisiones \\
+\midrule
+Cheng et al., 2013 \cite{cheng2013superpixel} & SiMES (650, base de ORIGA) y SCES; segmentación de disco y copa & Superpíxeles con rasgos centro-entorno y CDR. AUC de 0,800 y 0,822 & Motivó la medida de palidez centro/anillo de la base; su ruta necesita contornos que no tenemos \\
+\addlinespace
+Chen et al., 2015 \cite{chen2015glaucoma} & ORIGA y SCES; glaucoma/sano & CNN de 6 capas entrenada desde cero con aumento de datos. AUC de 0,831 en ORIGA & Con 363 imágenes de entrenamiento descartamos entrenar desde cero y usamos una red preentrenada \\
+\addlinespace
+Fu et al., 2018 \cite{fu2018denet} & Entrena con ORIGA y prueba en SCES y SINDI & DENet: 4 ramas, entre ellas ResNet-50 sobre la imagen y la región del disco. AUC de 0,918 y 0,817 & Muestra la caída fuera del conjunto de origen; sus ramas necesitan retinografía completa y máscaras \\
+\addlinespace
+Christopher et al., 2018 \cite{christopher2018transfer} & 14\,822 fotografías del disco de una población diversa; glaucoma/sano & VGG16, Inception-v3 y ResNet-50, con y sin transferencia desde ImageNet. Mejor AUC de 0,91 & La transferencia mejoró todos sus modelos: es la base de nuestro cambio principal (V1--V3) \\
+\botrule
+\end{tabularx}
+\end{table}
+
+Los cuatro trabajos (Tabla~\ref{tab:estado}) sostienen dos decisiones. La primera es concentrarse en la región del disco, que es lo que contienen nuestros recortes. La segunda es usar una red preentrenada en vez de entrenarla desde cero. Christopher et al.\ observaron que la transferencia mejora el desempeño con pocos datos, y Chen et al.\ necesitaron aumento de datos y \textit{dropout} incluso con una red pequeña. Sus cifras son una referencia de lo alcanzable y no una comparación directa, porque usan particiones o versiones de los datos distintas.
+
+%%==================================================================%%
+\section{Resultados finales}\label{sec:resultados}
+%%==================================================================%%
+
+\subsection{Comparación en validación (91 imágenes: 23 glaucoma, 68 sanas)}
+
+\begin{table}[htbp]
+\small
+\caption{Base y variantes sobre las mismas 91 imágenes de validación, con umbral 0,5. Entre paréntesis, el IC 95\,\%. Las dos últimas columnas usan el umbral que conserva la especificidad de la base ($\ge 43/68$). Fuente: \texttt{comparacion\_validacion.csv}}\label{tab:comparacion}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Versión & VP/FN/FP/VN & Sens. & Esp. & AUC & $\Delta$AUC vs.\ base & AUC ent. & Sens. (esp $\ge$ base) \\
+\midrule
+Base & 16/7/25/43 & 16/23 = 0,696 & 43/68 = 0,632 & 0,667 (0,54--0,78) & --- & 0,649 & 16/23 \\
+V1 & 13/10/11/57 & 13/23 = 0,565 & 57/68 = 0,838 & 0,797 (0,67--0,90) & +0,13 ($-$0,04--0,29) & 1,000 & 21/23 \\
+\textbf{V2} & 17/6/16/52 & 17/23 = 0,739 & 52/68 = 0,765 & \textbf{0,831} (0,74--0,91) & +0,16 (0,04--0,31) & 0,810 & 21/23 \\
+V3 & 9/14/2/66 & 9/23 = 0,391 & 66/68 = 0,971 & 0,837 (0,73--0,93) & +0,17 (0,01--0,36) & 0,999 & 19/23 \\
+\botrule
+\end{tabular}}
+\end{table}
+
+Las tres variantes superan a la base en AUC (Tabla~\ref{tab:comparacion} y Figura~\ref{fig:roccomp}). En V2 y V3, el intervalo de la diferencia queda por encima de cero. V1, con $C=1$, memoriza el entrenamiento (AUC de 1,000 en entrenamiento frente a 0,797 en validación), como anticipamos en la Entrega 2 al pasar de 8 a 512 rasgos. La regularización de V2 elimina ese sobreajuste (0,810 frente a 0,831). V3 también memoriza (0,999) y, con umbral 0,5, apenas detecta 9 de 23 glaucomas: sus puntuaciones no quedan calibradas alrededor de ese valor.
+
+\textbf{Versión elegida: V2.} V3 tiene el AUC más alto (0,837), pero la diferencia con V2 (0,006) es menor que el margen de 0,01. Según la regla, gana la más simple: V2 no necesita entrenar la red, su AUC de entrenamiento no muestra sobreajuste y conserva más sensibilidad con la especificidad de la base (21/23 frente a 19/23). Su umbral congelado es \textbf{0,4834}, que en validación da una sensibilidad de 21/23 y una especificidad de 43/68.
+
+Además, el caso \texttt{train/233}, el falso negativo más marcado de la base ($p=0{,}004$), pasa a $p=0{,}566$ con V2, por encima del umbral. Si se quita \texttt{train/027}, que tiene un gemelo en entrenamiento, los AUC casi no cambian (base 0,665; V2 0,829). La base fallaba más en las tomas claras, con 16 errores de 30 en el tercil más claro. V2 baja a 12 de 30 y V3 a 7 de 30 (Figura~\ref{fig:exposicion}, \texttt{analisis\_comparacion.txt}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.47\textwidth]{figuras/roc_comparacion_validacion.png}\hfill
+\includegraphics[width=0.51\textwidth]{figuras/errores_exposicion_validacion.png}
+\caption{Validación ($n=91$), las cuatro versiones. Izquierda: curvas ROC con AUC e IC 95\,\%. Derecha: tasa de error con umbral 0,5 por tercil de brillo del disco}\label{fig:roccomp}\label{fig:exposicion}
+\end{figure}
+
+\subsection{Evaluación en prueba de la versión elegida (V2, umbral 0,4834)}
+
+V2 se aplicó una sola vez, con parámetros, preprocesamiento y umbral congelados, a las 192 imágenes de prueba incluidas (49 con glaucoma y 143 sanas). Las Tablas~\ref{tab:pruebacm} y~\ref{tab:prueba} y la Figura~\ref{fig:prueba} muestran el resultado. Siguiendo la guía, la base no se evaluó en prueba, así que la comparación base/variante se apoya en la validación.
+
+\begin{table}[htbp]
+\caption{Matriz de confusión de V2 en prueba ($n=192$), umbral 0,4834. Fuente: \texttt{metricas\_prueba.json}}\label{tab:pruebacm}
 \begin{tabular*}{\textwidth}{@{\extracolsep\fill}lcc}
 \toprule
  & Predicción: glaucoma & Predicción: sano \\
 \midrule
-Referencia: glaucoma (23) & VP = 16 & FN = 7 \\
-Referencia: sano (68)     & FP = 25 & VN = 43 \\
+Referencia: glaucoma (49) & VP = 40 & FN = 9 \\
+Referencia: sano (143) & FP = 68 & VN = 75 \\
 \botrule
 \end{tabular*}
 \end{table}
 
 \begin{table}[htbp]
-\caption{Métricas sobre la validación, con intervalo de confianza del 95\,\% por \textit{bootstrap} estratificado por clase (1000 remuestreos, percentiles 2,5 y 97,5). La última columna es el clasificador trivial que siempre responde ``sano''}\label{tab:metricas}
+\caption{Métricas de V2 en prueba con IC 95\,\% (\textit{bootstrap} estratificado, 1000 remuestreos). Las dos últimas columnas son análisis de sensibilidad del mismo resultado}\label{tab:prueba}
 \begin{tabular*}{\textwidth}{@{\extracolsep\fill}lcccc}
 \toprule
-Métrica & Cálculo & Valor & IC 95\,\% & Trivial \\
+Métrica & Cálculo & Prueba (192) & Con las 4 excluidas (196) & Sin \texttt{test/175} (191) \\
 \midrule
-Sensibilidad & VP/(VP+FN) = 16/23 & 0,696 & 0,521--0,870 & 0 \\
-Especificidad & VN/(VN+FP) = 43/68 & 0,632 & 0,514--0,735 & 1 \\
-AUC-ROC & sobre probabilidades continuas & 0,667 & 0,538--0,783 & 0,5 \\
-F1 (glaucoma) & 2VP/(2VP+FP+FN) = 32/64 & 0,500 & 0,375--0,610 & 0 \\
-Exactitud & (VP+VN)/91 = 59/91 & 0,648 & 0,549--0,736 & 0,747 \\
+Sensibilidad & 40/49 & 0,816 (0,69--0,92) & 41/51 = 0,804 & 40/49 = 0,816 \\
+Especificidad & 75/143 & 0,524 (0,44--0,60) & 77/145 = 0,531 & 75/142 = 0,528 \\
+AUC-ROC & puntuación continua & 0,751 (0,66--0,83) & 0,749 & 0,753 \\
+F1 (glaucoma) & 80/157 & 0,510 (0,44--0,57) & --- & --- \\
 \botrule
 \end{tabular*}
 \end{table}
 
-La línea base detecta 16 de los 23 casos de glaucoma (sensibilidad 0,70), a cambio de 25 falsos positivos (especificidad 0,63). Frente al clasificador trivial gana en todo lo que importa en tamizaje: pasa de 0 a 16 casos detectados y de un F1 de 0 a 0,50. Su exactitud (0,648) es incluso menor que la del trivial (0,747), lo que confirma que la exactitud no sirve para comparar en este problema. El AUC de 0,667 tiene un intervalo cuyo límite inferior (0,54) queda por encima de 0,5, así que hay algo de señal, pero la separación es débil (Figura~\ref{fig:roc}). Para tamizaje, una sensibilidad de 0,70 con una especificidad de 0,63 no es aceptable: se escaparía casi uno de cada tres casos y más de la mitad de las remisiones serían falsas alarmas (25 de 41 positivos).
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.42\textwidth]{figuras/roc_prueba.png}\hfill
+\includegraphics[width=0.42\textwidth]{figuras/matriz_confusion_prueba.png}
+\caption{V2 en prueba ($n=192$). Izquierda: curva ROC con el punto de operación congelado. Derecha: matriz de confusión}\label{fig:prueba}
+\end{figure}
 
-En números, la clase que más falla es la sana (25 FP frente a 7 FN), pero el patrón de fondo es que casi todas las probabilidades quedan cerca de 0,5: la mediana es 0,46 en las sanas y 0,52 en las de glaucoma; 18 de los 25 FP tienen $p<0{,}60$ y 6 de los 7 FN tienen $p$ entre 0,39 y 0,49. Un cambio pequeño del umbral movería muchos casos de un lado a otro. Estas cifras salen de \texttt{analisis\_error.txt}. El AUC en entrenamiento (0,649) es similar al de validación, así que el modelo no está memorizando: el límite está en las características, no en el ajuste.
+En prueba, V2 detecta 40 de 49 casos de glaucoma. El precio es alto: 68 de las 143 imágenes sanas se marcan como glaucoma, así que de 108 remisiones, 68 serían falsas alarmas. Frente a la validación, el AUC baja de 0,831 a 0,751 y la especificidad de 43/68 (0,632) a 75/143 (0,524). La sensibilidad baja menos, de 21/23 a 40/49. Los intervalos de validación son anchos, porque solo había 23 positivos, y el AUC de prueba queda apenas dentro del intervalo de validación (0,74--0,91), cerca de su límite inferior. Es decir, la validación sobreestimó el desempeño, algo esperable porque con ella se eligió entre cuatro versiones y se fijó el umbral. Incluir las 4 imágenes excluidas o quitar el par dudoso \texttt{test/175} no cambia el resultado (Tabla~\ref{tab:prueba}).
 
-Los coeficientes estandarizados con más peso son \texttt{palidez\_R} (+0,63), \texttt{media\_G} (+0,61) y \texttt{media\_B} ($-$0,51). La medida más ligada a la copa, \texttt{palidez\_G}, tiene un peso casi nulo (+0,01): en entrenamiento su mediana es 1,062 en las sanas y 1,075 en las de glaucoma, con distribuciones muy solapadas. Además, el canal rojo está saturado en casi todos los recortes (en el 98,9\,\% de las imágenes de entrenamiento \texttt{media\_R} supera 0,95), por lo que \texttt{palidez\_R} vale casi siempre 1 y su peso alto lo deciden unos pocos valores extremos. En resumen, el modelo responde sobre todo al color y al brillo general de la región, no a la palidez central que motivó el diseño. Por último, el único caso de validación con un gemelo en entrenamiento (\texttt{train/027}) fue un VN con $p=0{,}46$; si se quita, la especificidad pasa a 42/67 = 0,627 y el AUC a 0,665, así que esa fuga no cambia las conclusiones.
+La Figura~\ref{fig:casos} ilustra cuatro casos de prueba, uno de cada tipo: en cada tipo, el más alejado del umbral. Son solo ejemplos; las métricas se calcularon con las 192 imágenes, cuya tabla por caso está en \texttt{predicciones\_prueba.csv} (Anexo~\ref{secA1}).
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.48\textwidth]{figuras/curva_roc.png}\hfill
-\includegraphics[width=0.48\textwidth]{figuras/matriz_confusion.png}
-\caption{Curva ROC en validación, con el punto de operación del umbral 0,5 (izquierda), y matriz de confusión con conteos (derecha)}\label{fig:roc}
+\includegraphics[width=\textwidth]{figuras/casos_prueba.png}
+\caption{Casos de prueba ilustrados con V2 (umbral 0,4834; $n=192$): verdadero positivo \texttt{test/426}, verdadero negativo \texttt{test/262}, falso positivo \texttt{test/531} y falso negativo \texttt{test/580}. Sobre cada imagen aparecen el código, la etiqueta de referencia, la puntuación $p$ y la predicción}\label{fig:casos}
 \end{figure}
 
-\subsection*{Casos ilustrativos}
+%%==================================================================%%
+\section{Errores y limitaciones}\label{sec:errores}
+%%==================================================================%%
 
-La Figura~\ref{fig:casos} muestra tres casos independientes de la validación con su imagen, la etiqueta de referencia, la probabilidad estimada y la predicción. Son solo ilustraciones: las métricas anteriores se calcularon con las 91 imágenes. La tabla con todos los casos (código, referencia, probabilidad y predicción) está en \texttt{predicciones\_validacion.csv} y se resume en el Anexo~\ref{secA1}.
+Analizamos dos casos de la versión final en prueba (Figura~\ref{fig:analizados}): el falso negativo con menor puntuación, porque en tamizaje es el error más costoso, y el caso más cercano al umbral. El mapa Grad-CAM \cite{selvaraju2017gradcam} sobre \texttt{layer4} muestra qué zonas empujan la puntuación hacia glaucoma. Para V2 se calculó derivando la regresión logística a través de la red congelada. Las cifras están en \texttt{analisis\_prueba.txt} y en \texttt{casos\_analizados\_prueba.csv}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.9\textwidth]{figuras/casos_validacion.png}
-\caption{Tres casos de validación: un verdadero positivo (\texttt{train/612}), un falso negativo (\texttt{train/233}) y un falso positivo (\texttt{train/491}). En cada tipo se tomó el caso con la probabilidad más extrema. Sobre cada imagen: código, etiqueta de referencia, probabilidad de glaucoma estimada y predicción con umbral 0,5}\label{fig:casos}
+\includegraphics[width=0.72\textwidth]{figuras/casos_analizados_prueba.png}
+\caption{Casos analizados de V2 en prueba (umbral 0,4834; $n=192$). Arriba: error observado, \texttt{test/580}, un falso negativo. Abajo: caso límite, \texttt{test/183}, un falso positivo a 0,0001 del umbral. A la derecha, el mapa Grad-CAM superpuesto}\label{fig:analizados}
 \end{figure}
 
-\subsection*{Análisis de un error}
-
-Elegimos un falso negativo, porque es el error de mayor costo en tamizaje, y entre ellos el más marcado.
-
+\textbf{Caso 1: error observado (\texttt{test/580}).}
 \begin{itemize}
-\item \textbf{Dónde difiere:} caso \texttt{train/233}, referencia 1 (glaucoma), probabilidad 0,004, predicción 0 (sano). Los otros 6 FN quedaron cerca del umbral ($p$ entre 0,39 y 0,49); este es el único que el modelo descarta con total seguridad.
-\item \textbf{Qué se observa en la imagen:} es una toma más oscura y amarillenta que el resto (Figura~\ref{fig:casos}, centro), con bordes oscuros, el disco ocupando casi todo el recorte y vasos gruesos que lo cruzan. En las características, su \texttt{media\_R} es 0,71, cuando en entrenamiento el mínimo es 0,87 y la media 0,992 (desviación 0,011): queda a 26,6 desviaciones de la media. Su \texttt{media\_G} también es más baja que la de todas las imágenes de entrenamiento.
-\item \textbf{Hipótesis:} el error lo causa la exposición de la toma y no el disco. Como el canal rojo casi siempre está saturado, \texttt{media\_R} apenas varía en entrenamiento; una imagen oscura con el rojo sin saturar produce un valor estandarizado extremo, y la regresión, al ser lineal, lo extrapola. Solo el término de \texttt{media\_R} aporta $-$6,6 al logit, y el de \texttt{media\_G}, $-$2,2. Es una hipótesis, no una causa demostrada.
-\item \textbf{Prueba para comprobarla:} (1) Sin reentrenar, recortar cada característica de este caso al rango visto en entrenamiento y volver a predecir. Lo hicimos (\texttt{06\_analisis\_error.py}, salida en \texttt{analisis\_error.txt}): la probabilidad sube de 0,004 a 0,18. La extrapolación explica que el error sea tan seguro, pero no el error en sí, porque el caso sigue clasificado como sano. (2) Para la parte restante, la prueba es normalizar el brillo de cada imagen antes de medir (por ejemplo, dividir cada canal por su media en el disco) o quitar \texttt{media\_R}, reentrenar \emph{solo} con entrenamiento y comprobar con validación cruzada dentro de entrenamiento si el AUC se mantiene, y si \texttt{train/233} supera el umbral. Si lo supera, la causa es la exposición; si no, el caso necesita una representación de la forma de la copa que estas medidas no capturan.
+\item \textbf{Referencia y salida:} glaucoma; $p=0{,}420$, predicción sano (FN), a 0,064 por debajo del umbral. Es el FN más alejado del umbral. Los otros 8 FN están entre 0,437 y 0,482.
+\item \textbf{Qué se observa:} el disco no está centrado en el recorte. Ocupa la mitad izquierda, con una zona central amplia y pálida y vasos que la cruzan, mientras que la mitad derecha es retina naranja oscura. El brillo del disco es típico (percentil 44 de la prueba), así que la exposición no explica este error, a diferencia de \texttt{train/233} en la base. El Grad-CAM se concentra en el borde izquierdo y no en la zona pálida central.
+\item \textbf{Hipótesis (no demostrada):} los rasgos de ImageNet, promediados sobre toda la imagen, mezclan el disco con la retina de alrededor. Cuando el disco está descentrado, la mitad de los rasgos describe retina sin información sobre la copa, y la puntuación se acerca a la de un ojo sano.
+\item \textbf{Cómo comprobarla:} recentrar el recorte en el disco (por ejemplo, en el máximo de brillo suavizado), volver a puntuar sin reentrenar y ver si este caso y los demás FN suben. También se puede repetir el Grad-CAM sobre los 9 FN para ver si la atención cae fuera del disco.
 \end{itemize}
 
+\textbf{Caso 2: caso límite (\texttt{test/183}).}
+\begin{itemize}
+\item \textbf{Referencia y salida:} sano; $p=0{,}4836$, predicción glaucoma (FP). Queda a 0,0001 del umbral, de modo que cualquier variación mínima cambiaría la clase.
+\item \textbf{Qué se observa:} la toma está desenfocada y los vasos y el borde del disco se ven difusos. El centro es claro y amarillento. El Grad-CAM marca la retina del borde derecho.
+\item \textbf{Hipótesis:} sin bordes nítidos, los rasgos pierden la información de forma, y la puntuación cae en la zona de máxima mezcla de las dos clases.
+\item \textbf{Lectura general:} este caso refleja el problema que explica la caída de especificidad. Con $C=10^{-4}$, las puntuaciones de V2 quedan comprimidas entre 0,39 y 0,61, y la mediana de las sanas en prueba es 0,48, prácticamente igual al umbral. De los 68 FP, 45 tienen $p<0{,}52$.
+\item \textbf{Análisis exploratorio, sin usarlo para decidir:} con umbral 0,5 la prueba habría dado una sensibilidad de 33/49 y una especificidad de 95/143. El punto de operación es muy sensible a un desplazamiento pequeño del umbral, y fijarlo con solo 91 imágenes lo vuelve frágil.
+\end{itemize}
+
+\textbf{Límites del estudio.}
+\begin{enumerate}
+\item \textbf{Independencia:} sin identificador de paciente no se puede garantizar que una misma persona no esté en dos particiones (Sección~\ref{sec:particion}).
+\item \textbf{Un solo origen:} todas las imágenes provienen del estudio SiMES, con población malaya, la misma cámara y criterios homogéneos. Fu et al.\ muestran que el desempeño baja al cambiar de población \cite{fu2018denet}.
+\item \textbf{Etiquetas:} un par del mismo ojo tiene etiquetas opuestas, y la etiqueta clínica integra información (presión, campo visual) que la foto no contiene.
+\item \textbf{Tamaño:} con 23 positivos en validación y 49 en prueba, los intervalos son anchos (AUC de prueba entre 0,66 y 0,83). Por eso no distinguimos entre V2 y V3.
+\item \textbf{Datos de entrada:} recortes JPG ya comprimidos y sin máscaras; no pudimos evaluar la ruta basada en la relación copa/disco.
+\item \textbf{Interpretación:} el Grad-CAM de los casos analizados no muestra que el modelo use la copa óptica, así que no podemos afirmar que reconozca el signo clínico.
+\end{enumerate}
+
 %%==================================================================%%
-\section{Próximo paso}\label{sec:siguiente}
+\section{Conclusiones y aportes}\label{sec:conclusiones}
 %%==================================================================%%
 
-\textbf{Cambio principal.} Reemplazar las 8 características hechas a mano por características aprendidas. Usaremos una red convolucional preentrenada en ImageNet, ResNet-18 \cite{he2016resnet}, como extractor fijo, apoyados en que el aprendizaje por transferencia desde ImageNet mejora la detección de glaucoma en fotografías del nervio óptico \cite{christopher2018transfer} y mantendremos el mismo clasificador (regresión logística balanceada). Así el único cambio es la representación de la imagen, y la comparación con la línea base es directa. La hipótesis es que la red capta detalles que nuestras medidas de brillo no ven, como la forma del borde de la copa o el recorrido de los vasos sobre el disco.
+\textbf{Respuesta a la pregunta.} Con esta copia de ORIGA-light, sí es posible identificar glaucoma \emph{por encima del azar}. La versión final obtuvo en prueba, sobre 192 imágenes nunca usadas para ajustar, un AUC de 0,751 (IC 95\,\%: 0,66--0,83) y detectó 40 de 49 casos. No es posible hacerlo con la especificidad que exigiría un tamizaje: solo 75 de 143 imágenes sanas se clasificaron como sanas.
 
-\textbf{Contra qué se compara.} Contra la línea base de este informe, con la misma partición, la misma semilla y las mismas 91 imágenes de validación. Solo el modelo que se elija al final se evaluará una vez sobre la prueba reservada, sin las 4 imágenes que tienen un gemelo en entrenamiento (192 imágenes; Sección~\ref{sec:particion}).
+\textbf{Qué mejoró.} En las mismas 91 imágenes de validación, cambiar las medidas de color por rasgos de ResNet-18 subió el AUC de 0,667 a 0,831 (+0,16; IC 0,04--0,31). También corrigió el falso negativo extremo de la base (\texttt{train/233}) y redujo su dependencia de la exposición. Regularizar fue necesario: sin regularización (V1), el modelo memorizó el entrenamiento.
 
-\textbf{Métrica de mejora.} El AUC-ROC en validación como criterio principal. Como criterio secundario, la sensibilidad con el umbral ajustado para no bajar de la especificidad obtenida por la línea base.
+\textbf{Qué no mejoró.} El ajuste fino (V3) no superó a V2 por un margen relevante y memorizó el entrenamiento. En prueba, la especificidad cayó por debajo de la que buscábamos (0,524 frente a 0,632), porque las puntuaciones de V2 están muy concentradas alrededor del umbral.
 
-\textbf{Error a vigilar.} Los falsos negativos, y en particular si el caso analizado en la Sección~\ref{sec:piloto} (\texttt{train/233}) se corrige o se mantiene. Como la línea base respondió sobre todo al brillo general, revisaremos también si la red es sensible a la exposición, comparando sus errores en las tomas más oscuras y más claras. Además vigilaremos el sobreajuste, comparando el AUC de entrenamiento con el de validación, porque con 363 imágenes y 512 características por imagen el riesgo de sobreajuste es mucho mayor que con 8.
+\textbf{Qué no puede concluirse.}
+\begin{itemize}
+\item La utilidad clínica.
+\item El desempeño en otras poblaciones o cámaras.
+\item Que el modelo use la copa óptica.
+\item Que V2 sea mejor que V3, porque sus intervalos se solapan.
+\item La ventaja de V2 sobre la base \emph{en prueba}, porque la base no se evaluó allí.
+\end{itemize}
 
-\begin{table}[!htbp]
+\textbf{Limitación prioritaria para trabajo futuro.} Obtener la versión oficial con identificador de paciente y ojo, para repetir la partición agrupando por persona y validar en un conjunto externo (por ejemplo, REFUGE). Con más datos de validación también se podría fijar un umbral menos frágil.
+
+\begin{table}[htbp]
 \small
-\caption{Responsables y aporte verificable de cada integrante}\label{tab:roles}
-\begin{tabularx}{\textwidth}{@{}L{2.6cm}YY@{}}
+\caption{Aportes verificables de cada integrante en la entrega final}\label{tab:roles}
+\begin{tabularx}{\textwidth}{@{}L{2.7cm}YY@{}}
 \toprule
-Integrante & Aporte en esta entrega & Responsabilidad para la entrega final \\
+Integrante & Tarea & Evidencia (ZIP) \\
 \midrule
-Giuseppe Kanyike Buwule & Sección 1 (tabla de datos, condiciones de uso y fecha de acceso); búsqueda y lectura de los trabajos de Cheng et al.\ y Chen et al.\ (Tabla~\ref{tab:estado}); revisión a ojo de los pares de imágenes repetidas (\texttt{revision\_pares.csv}) & Actualizar las tablas de resultados con el nuevo modelo y revisar que los conteos del informe coincidan con los CSV \\
-Daniel Duque & Interpretación de los resultados de la Sección 4 (matriz de confusión, comparación con el clasificador trivial, casos ilustrativos) y tabla de errores del Anexo~\ref{secA1}; búsqueda y lectura de los trabajos de Fu et al.\ y Christopher et al. & Analizar los errores del nuevo modelo frente a la línea base y redactar la discusión de la entrega final \\
-Juan David Daza & Código completo (\texttt{01} a \texttt{06}, \texttt{config.yaml}, \texttt{README.md}); partición y verificación contra fuga (Sección 2); diseño de la línea base y pasos del método (Secciones 3.2 y 3.3); análisis del error de \texttt{train/233}; armado del informe en \LaTeX\ y del ZIP & Implementar el extractor ResNet-18, ejecutar la comparación con la línea base y la evaluación final sobre la prueba \\
+Giuseppe Kanyike Buwule & Actualizó la sección de datos y partición, la tabla de trabajos relacionados y comprobó que los conteos del informe coinciden con los archivos & Tablas~\ref{tab:datos}, \ref{tab:particion} y~\ref{tab:estado}; \texttt{particion\_final.csv}, \texttt{metricas\_prueba.json} \\
+Daniel Duque & Analizó los errores de la versión final (casos \texttt{test/580} y \texttt{test/183}, exposición) y redactó la discusión y las conclusiones & Secciones~\ref{sec:errores} y~\ref{sec:conclusiones}; \texttt{analisis\_prueba.txt}, \texttt{casos\_analizados\_prueba.csv} \\
+Juan David Daza & Implementó y ejecutó las variantes, la comparación, la evaluación única en prueba y la inferencia; armó el informe y el ZIP & \texttt{07}--\texttt{13\_*.py}, \texttt{modelos.py}, \texttt{predecir.py}, \texttt{version\_elegida.json}, \texttt{prueba\_ejecutada.lock} \\
 \botrule
 \end{tabularx}
-\footnotetext{Cada aporte se puede verificar en los archivos del ZIP de evidencias indicados en el Anexo~\ref{secA2}.}
 \end{table}
 
 \FloatBarrier
@@ -365,45 +434,53 @@ Juan David Daza & Código completo (\texttt{01} a \texttt{06}, \texttt{config.ya
 
 \bmhead{Uso de herramientas}
 
-Para redactar y organizar este informe usamos Claude (Anthropic) como herramienta de apoyo \cite{anthropic2026claude}, y Claude Code como asistente en la programación de los scripts. El equipo revisó el contenido, ejecutó el código y comprobó que las cifras del informe coinciden con los archivos de resultados. El documento sigue la plantilla \LaTeX\ de Springer Nature \cite{springer2024latex}.
-
+Usamos Claude (Anthropic) \cite{anthropic2026claude} mediante Claude Code para programar los scripts y redactar borradores de este informe. Verificamos su salida así:
+\begin{itemize}
+\item ejecutamos todo el código;
+\item comprobamos que la línea base de la Entrega 2 se reproduce de forma idéntica;
+\item cotejamos cada cifra del texto con los JSON, CSV y TXT de \texttt{resultados/};
+\item revisamos a ojo cada figura.
+\end{itemize}
+El documento sigue la plantilla \LaTeX\ de Springer Nature \cite{springer2024latex}.
 
 \bibliography{referencias}
 
 \begin{appendices}
 
-\section{Resultados por caso en validación}\label{secA1}
+\section{Resultados por caso en prueba}\label{secA1}
 
-La Tabla~\ref{tab:errores} lista los 32 errores de validación con su probabilidad estimada. Los 59 aciertos (16 VP y 43 VN) y las columnas completas (código, referencia, probabilidad, predicción y tipo) están en \texttt{predicciones\_validacion.csv}. Todos los códigos son de la carpeta \texttt{ORIGA/train}.
+La tabla completa por caso de prueba está en \texttt{predicciones\_prueba.csv}. Tiene una fila por cada una de las 196 imágenes, con su código, partición, versión, etiqueta, puntuación, umbral, predicción, tipo e inclusión en la evaluación. La Tabla~\ref{tab:errores} lista los 77 errores de las 192 imágenes evaluadas; los 115 aciertos son 40 VP y 75 VN. Las tablas equivalentes de validación para las cuatro versiones están en \texttt{predicciones\_validacion\_todas.csv}.
 
 \begin{table}[htbp]
-\caption{Errores en validación con umbral 0,5: código de imagen y, entre paréntesis, la probabilidad de glaucoma estimada, ordenados de menor a mayor}\label{tab:errores}
-\begin{tabularx}{\textwidth}{@{}L{2.4cm}X@{}}
+\small
+\caption{Errores de V2 en prueba ($n=192$, umbral 0,4834): número de imagen (\texttt{test/}) y, entre paréntesis, la puntuación, de menor a mayor}\label{tab:errores}
+\begin{tabularx}{\textwidth}{@{}L{2.2cm}Y@{}}
 \toprule
 Tipo & Casos \\
 \midrule
-FN (7): glaucoma predicho como sano & 233 (0,00), 208 (0,40), 617 (0,40), 336 (0,43), 605 (0,46), 646 (0,48), 589 (0,48) \\
+FN (9): glaucoma predicho como sano & 580 (0,420), 317 (0,437), 229 (0,446), 116 (0,450), 246 (0,460), 601 (0,473), 480 (0,475), 289 (0,481), 514 (0,482) \\
 \midrule
-FP (25): sano predicho como glaucoma & 649 (0,50), 082 (0,50), 493 (0,51), 064 (0,51), 350 (0,52), 303 (0,52), 288 (0,53), 481 (0,53), 633 (0,53), 259 (0,53), 032 (0,54), 073 (0,55), 371 (0,55), 547 (0,57), 192 (0,57), 217 (0,58), 075 (0,59), 146 (0,60), 282 (0,62), 287 (0,62), 167 (0,64), 606 (0,65), 177 (0,68), 509 (0,68), 491 (0,81) \\
+FP (68): sano predicho como glaucoma & 183 (0,484), 254 (0,484), 179 (0,484), 423 (0,485), 384 (0,485), 504 (0,487), 332 (0,487), 434 (0,488), 347 (0,488), 091 (0,488), 401 (0,489), 577 (0,491), 123 (0,492), 257 (0,493), 268 (0,493), 251 (0,495), 173 (0,498), 581 (0,499), 501 (0,499), 358 (0,500), 418 (0,501), 343 (0,501), 054 (0,501), 299 (0,502), 040 (0,502), 566 (0,503), 152 (0,503), 430 (0,506), 095 (0,506), 098 (0,507), 178 (0,507), 393 (0,507), 315 (0,507), 583 (0,508), 002 (0,509), 162 (0,509), 428 (0,510), 522 (0,511), 236 (0,511), 292 (0,512), 124 (0,513), 309 (0,514), 568 (0,515), 406 (0,515), 239 (0,519), 175 (0,522), 449 (0,523), 620 (0,526), 034 (0,527), 367 (0,528), 258 (0,528), 561 (0,528), 344 (0,531), 205 (0,533), 540 (0,533), 215 (0,534), 574 (0,536), 629 (0,541), 265 (0,545), 492 (0,547), 197 (0,549), 438 (0,555), 276 (0,573), 355 (0,576), 610 (0,576), 232 (0,577), 594 (0,606), 531 (0,609) \\
 \botrule
 \end{tabularx}
 \end{table}
 
 \section{Contenido del ZIP de evidencias y cómo ejecutarlo}\label{secA2}
 
-El archivo \texttt{E2\_Proyecto\_B\_Equipo02\_2026-30\_Evidencias.zip} contiene:
+El archivo \texttt{EF\_Proyecto\_B\_Equipo02\_2026-30\_Evidencias.zip} contiene:
 
 {\raggedright
 \begin{itemize}
-\item \texttt{README.md}: instrucciones de instalación y ejecución.
-\item \texttt{requirements.txt} y \texttt{config.yaml}: dependencias, semilla, parámetros y la conclusión de la revisión visual de los pares sospechosos.
-\item \texttt{comun.py} (lectura de la configuración), \texttt{01\_inventario.py}, \texttt{02\_particion.py}, \texttt{03\_verificar\_particion.py}, \texttt{04\_linea\_base.py}, \texttt{05\_figuras.py}, \texttt{06\_analisis\_error.py}.
-\item \texttt{resultados/}: \texttt{inventario.csv}, \texttt{particion.csv}, \texttt{verificacion\_particion.txt}, \texttt{revision\_pares.csv}, \texttt{prueba\_excluidos.csv}, \texttt{caracteristicas.csv}, \texttt{predicciones\_validacion.csv}, \texttt{metricas\_validacion.json}, \texttt{analisis\_error.txt}.
-\item \texttt{figuras/}: \texttt{casos\_validacion.png}, \texttt{matriz\_confusion.png}, \texttt{curva\_roc.png}, \texttt{caracteristicas\_por\_clase.png}, \texttt{pares\_phash.png}, \texttt{pares\_consecutivos.png} y \texttt{pares\_mismo\_ojo.png}.
+\item \texttt{README.md}: software y versiones, instalación, estructura, ruta de datos, semilla, secuencia exacta de ejecución y salidas esperadas.
+\item \texttt{codigo/}: \texttt{config.yaml} (parámetros de la base y las variantes, regla de selección y revisión visual), \texttt{requirements.txt}, \texttt{comun.py}, \texttt{modelos.py}, los scripts \texttt{01}--\texttt{13} y \texttt{predecir.py}.
+\item \texttt{codigo/modelos/}: pesos entrenados (\texttt{modelo\_base.joblib}, \texttt{modelo\_v1.joblib}, \texttt{modelo\_v2.joblib}, \texttt{modelo\_v3.pt}). Los pesos de ImageNet de ResNet-18 se descargan del enlace oficial de torchvision.
+\item \texttt{codigo/resultados/}: inventario y partición (\texttt{inventario.csv}, \texttt{particion\_final.csv}, \texttt{verificacion\_particion.txt}, \texttt{revision\_pares.csv}, \texttt{prueba\_excluidos.csv}); validación (\texttt{comparacion\_validacion.csv}, \texttt{predicciones\_validacion\_todas.csv}, \texttt{metricas\_validacion*.json}, \texttt{version\_elegida.json}); prueba (\texttt{predicciones\_prueba.csv}, \texttt{metricas\_prueba.json}, \texttt{prueba\_ejecutada.lock}); análisis (\texttt{analisis\_comparacion.txt}, \texttt{analisis\_prueba.txt}).
+\item \texttt{codigo/figuras/}: todas las figuras de este informe y las de la Entrega 2.
+\item \texttt{Presentacion.pdf}: diapositivas de la sustentación.
 \end{itemize}
 }
 
-El conjunto de datos no se incluye (ver Sección~\ref{sec:datos}). Para ejecutar el trabajo se descarga la copia de Kaggle, se ubica la carpeta \texttt{archive/} en la ruta indicada en \texttt{config.yaml} y se corren los scripts del 01 al 06 en orden, como explica \texttt{README.md}. Todo el proceso tarda menos de un minuto en CPU.
+El conjunto de datos no se incluye: se descarga de Kaggle y se ubica según \texttt{config.yaml}. El entrenamiento (\texttt{07}--\texttt{09}, unos 4 minutos en CPU) está separado de la evaluación y la inferencia (\texttt{10}--\texttt{13} y \texttt{predecir.py}), que usan los pesos incluidos. Ejemplo de inferencia: \texttt{python predecir.py ../archive/ORIGA/test/580.jpg}.
 
 \end{appendices}
 

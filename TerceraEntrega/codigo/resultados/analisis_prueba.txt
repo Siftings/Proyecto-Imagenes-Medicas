@@ -1,0 +1,17 @@
+ANÁLISIS EXPLORATORIO POSTERIOR A LA PRUEBA (v2, umbral congelado 0.4834)
+No se usa para decidir: la versión y el umbral ya estaban fijados.
+
+1. Puntuaciones (mediana por clase; 0 = sano, 1 = glaucoma)
+   Validación (n=91): {0: 0.47, 1: 0.525} rango 0.418-0.615
+   Prueba (n=192):     {0: 0.48, 1: 0.522} rango 0.391-0.610
+   FP con p < 0,52: 45 de 68; FN entre 0.420 y 0.482
+   Con umbral 0,5 (hipotético, no elegido): VP=33 FN=16 FP=48 VN=95 -> sens 33/49, esp 95/143
+
+2. Brillo del disco (luminancia media en el círculo de radio 102 px)
+   Entrenamiento: media 0.748, desv 0.063; prueba: media 0.748
+   Errores por tercil en prueba: oscura 25/64, media 21/64, clara 31/64
+   FP por tercil: oscura 21 de 46 sanos, media 18 de 52 sanos, clara 29 de 45 sanos
+
+3. Casos analizados
+   error: test/580 ref 1 p=0.4200 pred 0 (FN), distancia al umbral -0.0635, brillo 0.742 (percentil 44 en prueba)
+   limite: test/183 ref 0 p=0.4836 pred 1 (FP), distancia al umbral +0.0001, brillo 0.758 (percentil 56 en prueba)

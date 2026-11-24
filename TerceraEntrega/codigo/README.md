@@ -10,7 +10,7 @@ La clase positiva es glaucoma (1).
 
 ## 1. Software e instalación
 
-Se probó con Python 3.13.13, numpy 2.3, pandas 2.3, scikit-learn 1.9.1, Pillow 12, torch 2.15 y torchvision 0.29, en macOS (Apple M4) usando solo la CPU.
+Se probó con Python 3.13.2, numpy 2.5.5, pandas 3.1.1, scikit-learn 1.9.1, Pillow 13.0, torch 2.15.0 y torchvision 0.29.2, en macOS con Apple M2 (8 GB) usando solo la CPU.
 Las versiones exactas de cada ejecución quedan en los JSON de `resultados/`.
 
 ```bash
@@ -50,7 +50,7 @@ python 05_figuras.py              # figuras de la base en validación (Entrega 2
 python 06_analisis_error.py       # análisis del FN train/233 de la base
 ```
 
-**B. Entrenamiento de las variantes (≈ 6 min en CPU; se puede omitir porque los pesos van en `modelos/`)**
+**B. Entrenamiento de las variantes (≈ 4 min en CPU; se puede omitir porque los pesos van en `modelos/`)**
 ```bash
 python 07_extraer_cnn.py          # rasgos ResNet-18 congelada (650 x 512)
 python 08_variantes_lr.py         # V1 y V2 -> modelos/modelo_v1.joblib, modelo_v2.joblib
@@ -62,6 +62,7 @@ python 09_ajuste_fino.py          # V3 (ajuste fino, 20 épocas) -> modelos/mode
 python 10_comparacion_validacion.py   # tabla base/V1/V2/V3, version_elegida.json (versión + umbral congelados)
 python 11_evaluacion_prueba.py        # SOLO la versión elegida sobre la prueba (192); deja un candado
 python 12_figuras_final.py            # figuras de validación y prueba (incluye Grad-CAM)
+python 13_analisis_prueba.py          # análisis exploratorio posterior (no cambia versión ni umbral)
 python predecir.py ../archive/ORIGA/test/240.jpg   # inferencia de una imagen con la versión congelada
 ```
 
@@ -80,6 +81,8 @@ Si se quiere reproducir el resultado sobre una copia nueva del ZIP, se usa `pyth
 | V3 | ResNet-18 con `layer4` y la capa final ajustadas | salida sigmoide, BCE ponderada, AdamW 1e-4, 20 épocas fijas, aumento | red ajustada a los datos |
 
 Regla de selección, fijada antes de comparar: gana la de mayor AUC en validación. Si la diferencia es menor de 0,01, gana la más simple.
+**Resultado:** V3 (AUC 0,837) y V2 (0,831) empatan según esa regla, así que se eligió **V2** con umbral **0,4834**.
+En prueba (192 imágenes): VP 40, FN 9, FP 68, VN 75; sensibilidad 40/49 = 0,816, especificidad 75/143 = 0,524 y AUC 0,751.
 El umbral de la elegida es el menor que mantiene en validación una especificidad ≥ 0,632, que es la de la base con umbral 0,5.
 
 ## 5. Salidas principales
@@ -93,7 +96,8 @@ El umbral de la elegida es el menor que mantiene en validación una especificida
 | `resultados/version_elegida.json` | versión, umbral, preprocesamiento y SHA-256 de los pesos congelados |
 | `resultados/predicciones_prueba.csv` | tabla por caso de prueba (ID, etiqueta, puntuación, predicción, tipo, incluido) |
 | `resultados/metricas_prueba.json` | métricas de prueba (192 imágenes; también 196 y 191 como análisis de sensibilidad) |
-| `resultados/analisis_comparacion.txt` | errores por exposición, `train/233` y efecto de `train/027` |
+| `resultados/analisis_comparacion.txt` | errores por exposición, `train/233` y efecto de `train/027` (validación) |
+| `resultados/analisis_prueba.txt`, `casos_analizados_prueba.csv` | distribución de puntuaciones, brillo y los dos casos analizados (prueba) |
 | `modelos/` | `modelo_base.joblib`, `modelo_v1.joblib`, `modelo_v2.joblib` y `modelo_v3.pt` (pesos entrenados) |
 | `figuras/` | figuras del informe; en cada una se indica método, partición y n |
 
