@@ -1,0 +1,176 @@
+{
+  "version": "v2",
+  "descripcion": "V2: ResNet-18 congelada + LR balanceada (C por CV en entrenamiento)",
+  "particion": "prueba",
+  "umbral_congelado": 0.48345,
+  "clase_positiva": "glaucoma (1)",
+  "principal_192": {
+    "n": 192,
+    "n_glaucoma": 49,
+    "n_sano": 143,
+    "umbral": 0.48345,
+    "VP": 40,
+    "FN": 9,
+    "FP": 68,
+    "VN": 75,
+    "denominadores": {
+      "sensibilidad": "40/49",
+      "especificidad": "75/143"
+    },
+    "metricas": {
+      "sensibilidad": {
+        "valor": 0.8163265306122449,
+        "IC95": [
+          0.6938775510204082,
+          0.9183673469387755
+        ]
+      },
+      "especificidad": {
+        "valor": 0.5244755244755245,
+        "IC95": [
+          0.4405594405594406,
+          0.6013986013986014
+        ]
+      },
+      "AUC": {
+        "valor": 0.7510346796061081,
+        "IC95": [
+          0.6600470957613814,
+          0.8319038104752389
+        ]
+      },
+      "F1": {
+        "valor": 0.5095541401273885,
+        "IC95": [
+          0.4378205128205128,
+          0.5732484076433121
+        ]
+      },
+      "exactitud": {
+        "valor": 0.5989583333333334,
+        "IC95": [
+          0.5260416666666666,
+          0.6615885416666666
+        ]
+      }
+    },
+    "bootstrap": {
+      "n_remuestreos": 1000,
+      "semilla": 42,
+      "tipo": "estratificado por clase, percentil"
+    }
+  },
+  "sensibilidad_196_sin_excluir": {
+    "n": 196,
+    "n_glaucoma": 51,
+    "n_sano": 145,
+    "umbral": 0.48345,
+    "VP": 41,
+    "FN": 10,
+    "FP": 68,
+    "VN": 77,
+    "denominadores": {
+      "sensibilidad": "41/51",
+      "especificidad": "77/145"
+    },
+    "metricas": {
+      "sensibilidad": {
+        "valor": 0.803921568627451,
+        "IC95": [
+          0.7053921568627451,
+          0.9215686274509803
+        ]
+      },
+      "especificidad": {
+        "valor": 0.5310344827586206,
+        "IC95": [
+          0.4413793103448276,
+          0.6068965517241379
+        ]
+      },
+      "AUC": {
+        "valor": 0.7488167680865451,
+        "IC95": [
+          0.670314401622718,
+          0.824420216362407
+        ]
+      },
+      "F1": {
+        "valor": 0.5125,
+        "IC95": [
+          0.44999260355029586,
+          0.5750421779141104
+        ]
+      },
+      "exactitud": {
+        "valor": 0.6020408163265306,
+        "IC95": [
+          0.5355867346938775,
+          0.6632653061224489
+        ]
+      }
+    },
+    "bootstrap": {
+      "n_remuestreos": 1000,
+      "semilla": 42,
+      "tipo": "estratificado por clase, percentil"
+    }
+  },
+  "sensibilidad_191_sin_test175": {
+    "n": 191,
+    "n_glaucoma": 49,
+    "n_sano": 142,
+    "umbral": 0.48345,
+    "VP": 40,
+    "FN": 9,
+    "FP": 67,
+    "VN": 75,
+    "denominadores": {
+      "sensibilidad": "40/49",
+      "especificidad": "75/142"
+    },
+    "metricas": {
+      "sensibilidad": {
+        "valor": 0.8163265306122449,
+        "IC95": [
+          0.6938775510204082,
+          0.9183673469387755
+        ]
+      },
+      "especificidad": {
+        "valor": 0.528169014084507,
+        "IC95": [
+          0.4434859154929578,
+          0.6056338028169014
+        ]
+      },
+      "AUC": {
+        "valor": 0.7527306697326818,
+        "IC95": [
+          0.6620993820063237,
+          0.8252425265881
+        ]
+      },
+      "F1": {
+        "valor": 0.5128205128205128,
+        "IC95": [
+          0.438679435483871,
+          0.5733333333333334
+        ]
+      },
+      "exactitud": {
+        "valor": 0.6020942408376964,
+        "IC95": [
+          0.5287958115183246,
+          0.6649214659685864
+        ]
+      }
+    },
+    "bootstrap": {
+      "n_remuestreos": 1000,
+      "semilla": 42,
+      "tipo": "estratificado por clase, percentil"
+    }
+  },
+  "huella_version_elegida": "a955357611efe2572c63b52503b68bada1d394f074e129d423b0389c93dc147b"
+}

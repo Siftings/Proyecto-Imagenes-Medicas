@@ -36,7 +36,8 @@ v_eleg, umbral = eleg["version"], eleg["umbral"]
 
 
 def guardar(fig, nombre):
-    fig.tight_layout()
+    # Con título general, se reserva espacio arriba para que no tape los títulos de los paneles
+    fig.tight_layout(rect=(0, 0, 1, 0.92) if fig._suptitle is not None else None)
     fig.savefig(FIGURAS / nombre, dpi=200)
     plt.close(fig)
 
@@ -133,7 +134,7 @@ def mas_lejano(tipo):
 
 
 casos = [c for c in (mas_lejano(t) for t in ["VP", "VN", "FP", "FN"]) if c is not None]
-fig, ejes = plt.subplots(1, len(casos), figsize=(2.6 * len(casos), 3.0))
+fig, ejes = plt.subplots(1, len(casos), figsize=(2.6 * len(casos), 3.5))
 for ax, c in zip(np.atleast_1d(ejes), casos):
     ax.imshow(imagen(c["codigo"])); ax.set_xticks([]); ax.set_yticks([]); ax.grid(False)
     ax.set_title(f"{c['codigo']} | ref: {NOMBRE_CLASE[int(c['etiqueta'])]}\np={c['puntuacion']:.2f} | "
