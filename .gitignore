@@ -24,15 +24,17 @@ __pycache__/
 .vscode/
 .idea/
 
-# Material de trabajo que no hace parte del repositorio
+# Material de trabajo que no hace parte del repositorio (enunciados del curso incluidos)
+PrimeraEntrega/enunciado.md
+PrimeraEntrega/Enunciado_*.pdf
 _tmp*/
 SegundaEntrega/formato
 SegundaEntrega/*.md
 SegundaEntrega/informe/*.pdf
 TerceraEntrega/*.md
+TerceraEntrega/Guia_*.pdf
 TerceraEntrega/informe/*.pdf
 
 # Pesos de modelos entrenados (se regeneran con el código)
 *.pt
-TerceraEntrega/*.pdf
 TerceraEntrega/entrega/

@@ -2,12 +2,13 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-orange)
+![PyTorch](https://img.shields.io/badge/pytorch-2.5%2B-red)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
 Proyecto del curso **Imágenes Médicas (34740)**, Departamento de Ingeniería de Sistemas, Pontificia Universidad Javeriana.
 **Proyecto B:** clasificar imágenes de fondo de ojo del conjunto ORIGA-light como *glaucoma* o *sano*.
 
-> Trabajo académico. Los resultados son preliminares y no constituyen una herramienta de diagnóstico clínico.
+> Trabajo académico. Los resultados no constituyen una herramienta de diagnóstico clínico.
 
 ## Pregunta de trabajo
 
@@ -22,11 +23,22 @@ método de clasificación, usando como referencia las etiquetas clínicas del co
 - Las imágenes **no se incluyen** en este repositorio. Para ejecutar el código, descarga el conjunto y
   ubica la carpeta `archive/` dentro de `TerceraEntrega/` (o ajusta `data_dir` en `config.yaml`).
 
+## Entregas
+
+| Entrega | Contenido | Documento |
+|---|---|---|
+| 1 | Problema clínico y técnico, datos, partición propuesta y métricas | [`E1_Proyecto_[B]_Equipo02_2026-30.pdf.docx`](PrimeraEntrega/) |
+| 2 | Partición, control de fuga y línea base en validación (preliminar) | [`SegundaEntrega/informe/main.tex`](SegundaEntrega/informe/main.tex) |
+| 3 (final) | Base frente a variantes ResNet-18, versión congelada y evaluación única en prueba | [`EF_Proyecto_B_Equipo02_2026-30.pdf`](TerceraEntrega/EF_Proyecto_B_Equipo02_2026-30.pdf) · [presentación](TerceraEntrega/presentacion/Presentacion.pdf) |
+
+El ZIP de evidencias de la entrega final (código, resultados y pesos, incluido `modelo_v3.pt`) se comparte por OneDrive; no está en el repositorio.
+
 ## Estructura
 
 ```
 .
 ├── TerceraEntrega/              # entrega final (versión vigente)
+│   ├── EF_Proyecto_B_Equipo02_2026-30.pdf   # informe final compilado
 │   ├── codigo/                  # scripts 01–13, predecir.py, modelos.py, config.yaml
 │   │   ├── modelos/             # pesos: base, V1, V2 (joblib); V3 (.pt, fuera de git)
 │   │   ├── resultados/          # partición, comparación en validación, prueba, análisis
@@ -34,6 +46,7 @@ método de clasificación, usando como referencia las etiquetas clínicas del co
 │   ├── informe/                 # informe final en LaTeX (Springer Nature) y figuras
 │   └── presentacion/            # diapositivas HTML/PDF y guion de la sustentación
 ├── SegundaEntrega/              # Entrega 2: partición y línea base (scripts 01–06)
+├── PrimeraEntrega/              # Entrega 1: informe (.docx)
 └── LICENSE
 ```
 
@@ -80,6 +93,12 @@ Esa versión se evaluó **una sola vez** en prueba, sobre 192 imágenes (sin las
 
 Hay señal, pero la especificidad no alcanza para tamizaje. La copia no trae ID de paciente, así que no se puede verificar que una persona no aparezca en dos particiones.
 
+## Entrega 1: problema y datos
+
+Problema clínico y técnico, conjunto de datos e imágenes, tarea (clasificación binaria glaucoma/sano),
+plan de partición, calidad y riesgos de los datos, y métricas de evaluación. El informe está en
+[`PrimeraEntrega/`](PrimeraEntrega/).
+
 ## Entrega 2 (preliminar): partición y línea base
 
 **Partición.** Se respeta la división `train`/`test` de la copia y se toma el 20 % de `train` como validación,
@@ -125,9 +144,9 @@ manteniendo el mismo clasificador, la misma partición y la misma validación pa
 
 ## Equipo
 
-- Giuseppe Kanyike Buwule
-- Daniel Duque
-- Juan David Daza
+- Giuseppe Kanyike Buwule (Bioingeniería)
+- Daniel Duque (Bioingeniería)
+- Juan David Daza (Ingeniería de Sistemas)
 
 Profesor: Xavier Díaz. Bogotá D. C., 2026.
 
