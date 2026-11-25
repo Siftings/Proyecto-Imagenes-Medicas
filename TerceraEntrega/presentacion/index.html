@@ -3,336 +3,413 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glaucoma en ORIGA-light · Entrega final · Equipo 02</title>
+<title>Herramienta de apoyo al diagnóstico de glaucoma con ResNet-18</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Libre+Franklin:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ===========================================
    FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   Include this ENTIRE file in every presentation.
+   Slides are authored at 1920×1080 and scaled as a whole.
    =========================================== */
-html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
-.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
-.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
-.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
-.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
-img, video, canvas, svg { max-width: 100%; max-height: 100%; }
-.deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+
+/* 1. Lock the browser viewport */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 2. Full-window deck viewport */
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 3. Fixed 16:9 design canvas.
+   JavaScript sets transform: translate(...) scale(...). */
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+
+/* 4. Slides stack inside the fixed stage.
+   Content must be laid out at 1920×1080, not reflowed per device. */
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* 5. Keep media inside authored slide bounds */
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* 6. Presentation chrome stays outside the slide design system */
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+/* 7. Print one fixed-size slide per page */
 @media print {
-    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
-    .deck-viewport { position: static; overflow: visible; background: #fff; }
-    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
-    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
-    .slide:last-child { break-after: auto; page-break-after: auto; }
-    .deck-controls { display: none !important; }
+    html,
+    body {
+        width: 1920px;
+        height: auto;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-viewport {
+        position: static;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-stage {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none !important;
+        background: none;
+    }
+
+    .slide {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: 1920px;
+        height: 1080px;
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .deck-controls {
+        display: none !important;
+    }
 }
+
+/* 8. Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
 }
 
-/* ===========================================
-   THEME: papel cálido + tinta azul profunda + acento "fondo de ojo"
-   =========================================== */
+/* === TEMA: lámina de atlas oftalmológico ===
+   Papel amarillento con texto y láminas negras con figuras iluminadas, como los atlas de
+   cromolitografía del siglo XIX. Los colores salen de esas láminas y de las propias retinas. */
 :root {
-    --stage-bg: #1b1d22;
-    --slide-bg: #f6f3ec;
-    --ink: #17223b;
-    --ink-2: #4a5468;
-    --muted: #7d8494;
-    --rule: #d9d3c5;
-    --accent: #c4501b;      /* naranja de retina */
-    --accent-soft: #f3dfd2;
-    --good: #1f7a5a;
-    --panel: #fffdf8;
-    --serif: 'Newsreader', Georgia, serif;
-    --sans: 'IBM Plex Sans', sans-serif;
-    --mono: 'IBM Plex Mono', monospace;
+    --stage-bg: #17110c;
+    --slide-bg: #ecdfb9;     /* papel */
+    --ink: #17110c;          /* tinta */
+    --plate: #0d0a08;        /* lámina */
+    --vermilion: #c53a1a;    /* retina */
+    --disc: #fade8c;         /* disco óptico */
+    --olive: #8a8640;        /* sano */
+    --on-plate: #efe2bd;
+    --serif: "Old Standard TT", serif;
+    --sans: "Libre Franklin", sans-serif;
+    --type: "Courier Prime", monospace;
 }
+* { box-sizing: border-box; }
+p, h1, h2, ul { margin: 0; padding: 0; }
+.slide { font-family: var(--sans); color: var(--ink); font-size: 28px; line-height: 1.44; }
 
-/* === LAYOUT COMÚN === */
-.slide { font-family: var(--sans); color: var(--ink); }
-.slide::before {           /* banda lateral: recuerda el disco óptico iluminado */
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 14px;
-    background: linear-gradient(180deg, #f2b35a 0%, var(--accent) 55%, #8e2f10 100%);
-}
-.frame { position: absolute; inset: 70px 110px 90px 130px; }
-.kicker { font-family: var(--mono); font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
-h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-h2 { font-size: 66px; line-height: 1.05; }
-.lead { font-size: 34px; line-height: 1.4; color: var(--ink-2); margin: 18px 0 0; max-width: 1500px; }
-.foot { position: absolute; left: 130px; right: 110px; bottom: 34px; display: flex; justify-content: space-between;
-        font-family: var(--mono); font-size: 18px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; }
-.cols { display: grid; gap: 56px; margin-top: 64px; }
-.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 30px 34px; }
-ul.pts { margin: 0; padding: 0; list-style: none; }
-ul.pts li { font-size: 33px; line-height: 1.38; padding: 13px 0 13px 38px; position: relative; color: var(--ink); }
-ul.pts li::before { content: ""; position: absolute; left: 4px; top: 30px; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); }
-.num { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1; }
-.lbl { font-size: 26px; color: var(--ink-2); margin-top: 8px; line-height: 1.3; }
-.mono { font-family: var(--mono); }
-.hl { color: var(--accent); font-weight: 600; }
-.warn { background: var(--accent-soft); border-left: 6px solid var(--accent); padding: 22px 28px; font-size: 30px; line-height: 1.4; border-radius: 0 6px 6px 0; }
-figure { margin: 0; }
-figcaption { font-size: 23px; color: var(--muted); margin-top: 10px; line-height: 1.35; }
+/* === LÁMINA Y FIGURAS (posiciones absolutas sobre 1920x1080) === */
+.plate { position: absolute; background: var(--plate); color: var(--on-plate); }
+.f { position: absolute; object-fit: cover; max-width: none; max-height: none; }
+.o { border-radius: 50%; }
+.k { position: absolute; font: 400 24px/1 var(--serif); color: var(--disc); text-align: center; }
+.cap { position: absolute; font-size: 24px; line-height: 1.34; color: var(--on-plate); }
+.cap b { font-weight: 600; color: var(--disc); }
+.t { position: absolute; }
 
-/* === TABLAS === */
-table.t { border-collapse: collapse; width: 100%; font-size: 30px; }
-table.t th { font-family: var(--mono); font-weight: 500; font-size: 21px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--ink); }
-table.t td { padding: 17px 14px; border-bottom: 1px solid var(--rule); }
-table.t td.r, table.t th.r { text-align: right; }
-table.t tr.sel td { background: var(--accent-soft); font-weight: 600; }
+/* === TIPOGRAFÍA === */
+h1 { position: absolute; font: 400 88px/1.02 var(--serif); letter-spacing: -.012em; }
+h2 { position: absolute; font: 400 64px/1.06 var(--serif); letter-spacing: -.01em; }
+.t p + p { margin-top: 22px; }
+.t b { font-weight: 600; }
+.red { color: var(--vermilion); }
+.it { font: 400 italic 34px/1.3 var(--serif); }
+sup { font-size: .66em; line-height: 0; }
+.small { font-size: 25px; line-height: 1.4; }
+.page { position: absolute; right: 46px; bottom: 9px; font: 400 23px/1 var(--serif); }
+svg { position: absolute; overflow: visible; max-width: none; max-height: none; font-family: var(--sans); }
+.tb { font-size: 26px; } .ts { font-size: 23px; fill: #4b3f2e; } .tv { font-size: 28px; font-weight: 500; }
+.tn { font: 700 38px var(--serif); }
+.tm { font-size: 25px; fill: var(--on-plate); } .tmn { font: 700 38px var(--serif); fill: var(--disc); }
 
-/* === PORTADA === */
-.title-slide { background: radial-gradient(ellipse 900px 700px at 82% 50%, #f9d9b4 0%, #f3b77e 25%, rgba(196,80,27,.55) 55%, rgba(246,243,236,0) 78%), var(--slide-bg); }
-.title-slide h1 { font-size: 92px; line-height: 1.02; max-width: 1150px; }
-.title-slide .sub { font-size: 38px; color: var(--ink-2); margin-top: 28px; max-width: 1050px; line-height: 1.35; }
-.team { position: absolute; left: 0; bottom: 40px; font-size: 30px; line-height: 1.55; }
-.team b { font-family: var(--mono); font-weight: 500; font-size: 20px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 6px; }
+/* === DEFINICIONES: palabra en cursiva y explicación === */
+dl { margin: 0; display: grid; grid-template-columns: 132px 1fr; row-gap: 16px; }
+dt { font: 400 italic 34px/1.2 var(--serif); color: var(--vermilion); }
+dd { margin: 0; }
 
-/* === FLUJO (método) === */
-.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 38px; margin-top: 40px; }
-.step { background: var(--panel); border: 1px solid var(--rule); border-top: 6px solid var(--ink); border-radius: 6px; padding: 28px 30px; position: relative; min-height: 290px; }
-.step:nth-child(3) { border-top-color: var(--accent); }
-.step h3 { font-family: var(--serif); font-size: 40px; margin: 0 0 12px; }
-.step p { font-size: 27px; line-height: 1.4; margin: 0; color: var(--ink-2); }
-.step:not(:last-child)::after { content: "→"; position: absolute; right: -32px; top: 42%; font-size: 34px; color: var(--accent); }
+/* === SALIDA DE CONSOLA === */
+pre { margin: 0; font: 400 23px/1.4 var(--type); white-space: pre-wrap; border-left: 3px solid var(--ink); padding-left: 20px; }
 
-/* === MÉTRICAS GRANDES === */
-.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-.metric { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 34px 32px; }
-.metric .num { font-size: 100px; }
-.metric .den { font-family: var(--mono); font-size: 28px; color: var(--accent); margin-top: 6px; }
-
-/* === CÓDIGO / DEMO === */
-pre.term { background: #17223b; color: #e9e4d8; font-family: var(--mono); font-size: 21px; line-height: 1.5; padding: 22px 26px; border-radius: 6px; margin: 0; white-space: pre-wrap; }
-pre.term .p { color: #f2b35a; }
-
-/* === ANIMACIÓN: entrada escalonada === */
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
-.slide.active .reveal { opacity: 1; transform: none; }
-.slide.active .reveal:nth-child(2) { transition-delay: .08s; }
-.slide.active .reveal:nth-child(3) { transition-delay: .16s; }
-.slide.active .reveal:nth-child(4) { transition-delay: .24s; }
-
-/* === CONTROLES Y EDICIÓN (fuera del escenario) === */
-.deck-controls { font-family: var(--mono); font-size: 14px; color: #c9c4b8; background: rgba(0,0,0,.45); padding: 6px 14px; border-radius: 20px; }
+/* === EDICIÓN EN LÍNEA (solo en el navegador) === */
 .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; }
-.edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity .2s; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; opacity: 0; pointer-events: none; border: 0; padding: 6px 10px; cursor: pointer; }
 .edit-toggle.show, .edit-toggle.on { opacity: 1; pointer-events: auto; }
-body.editing [data-edit] { outline: 1px dashed var(--accent); }
+body.editing [data-edit] { outline: 1px dashed var(--vermilion); }
+
+/* === PDF: una lámina por página === */
+@page { size: 1920px 1080px; margin: 0; }
+@media print { .edit-hotzone, .edit-toggle { display: none; } * { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
 </style>
 </head>
 <body>
 <div class="edit-hotzone"></div>
-<button class="edit-toggle" id="editToggle" title="Modo edición (E)">✏️</button>
-
-<div class="deck-viewport">
-<div class="deck-stage" id="stage">
+<button class="edit-toggle" id="editToggle" title="Modo edición (E)">Editar</button>
+<div class="deck-viewport"><div class="deck-stage" id="stage">
 
 <!-- === 1. PORTADA === -->
-<section class="slide title-slide active">
-  <div class="frame">
-    <p class="kicker reveal">Imágenes Médicas 34740 · Entrega final · Proyecto B</p>
-    <h1 class="reveal" data-edit>Glaucoma en fondo de ojo: color frente a rasgos de ResNet-18</h1>
-    <p class="sub reveal" data-edit>Clasificación glaucoma / sano en ORIGA-light, con la línea base comparada contra tres variantes en los mismos casos y una única evaluación en prueba.</p>
-    <div class="team reveal" data-edit>
-      <b>Equipo 02</b>
-      Giuseppe Kanyike Buwule · Daniel Duque · Juan David Daza<br>
-      Prof. Xavier Díaz · Pontificia Universidad Javeriana · 26 de noviembre de 2026
-    </div>
-  </div>
+<section class="slide active">
+<h1 data-edit style="left:84px;top:92px;width:660px">Herramienta de apoyo al diagnóstico de glaucoma con ResNet-18</h1>
+<div class="t" data-edit style="left:84px;top:624px;width:590px;font-size:27px;line-height:1.46"><p>Entrega final del proyecto de la asignatura Imágenes Médicas. Pontificia Universidad Javeriana, Facultad de Ingeniería, Departamento de Ingeniería de Sistemas.</p></div>
+<div class="t it" data-edit style="left:84px;top:826px;line-height:1.34">Giuseppe Kanyike Buwule<br>Daniel Duque<br>Juan David Daza</div>
+<div class="t small" data-edit style="left:84px;top:994px;font-size:24px">Profesor Xavier Díaz. Bogotá, 26 de noviembre de 2026</div>
+<div class="plate" style="left:770px;top:44px;width:1106px;height:992px">
+<span class="k" style="left:66px;top:30px;width:650px">1.</span><img class="f o" src="img/test_366.jpg" alt="" style="left:66px;top:66px;width:650px;height:650px">
+<span class="k" style="left:770px;top:30px;width:272px">2.</span><img class="f" src="img/test_262.jpg" alt="" style="left:770px;top:66px;width:272px;height:272px">
+<span class="k" style="left:770px;top:362px;width:272px">3.</span><img class="f" src="img/test_289.jpg" alt="" style="left:770px;top:398px;width:272px;height:272px">
+<span class="k" style="left:66px;top:744px;width:162px">4.</span><img class="f" src="img/test_016.jpg" alt="" style="left:66px;top:780px;width:162px;height:162px">
+<span class="k" style="left:310px;top:744px;width:162px">5.</span><img class="f" src="img/test_480.jpg" alt="" style="left:310px;top:780px;width:162px;height:162px">
+<span class="k" style="left:554px;top:744px;width:162px">6.</span><img class="f" src="img/test_197.jpg" alt="" style="left:554px;top:780px;width:162px;height:162px">
+<span class="k" style="left:800px;top:694px;width:212px">7.</span><img class="f o" src="img/test_229.jpg" alt="" style="left:800px;top:730px;width:212px;height:212px">
+</div>
 </section>
 
 <!-- === 2. PROBLEMA Y DATOS === -->
 <section class="slide">
-  <div class="frame">
-    <p class="kicker">1 · Problema y datos</p>
-    <h2 data-edit>¿Se puede distinguir glaucoma en un recorte del disco óptico?</h2>
-    <div class="cols" style="grid-template-columns: 1.05fr 1fr;">
-      <div class="panel reveal">
-        <ul class="pts" data-edit>
-          <li><b>Entrada:</b> recorte RGB (JPG) centrado en el disco óptico</li>
-          <li><b>Referencia:</b> etiqueta del CSV (SERI): glaucoma = <span class="hl">clase positiva</span></li>
-          <li><b>Salida:</b> puntuación en [0, 1] y clase con un umbral fijado antes de la prueba</li>
-          <li>No es un diagnóstico: es un estudio académico</li>
-        </ul>
-      </div>
-      <div class="reveal">
-        <div class="metrics" style="grid-template-columns: 1fr 1fr;">
-          <div class="metric"><div class="num">650</div><div class="lbl">imágenes · copia de Kaggle de ORIGA-light (MIT)</div></div>
-          <div class="metric"><div class="num">168</div><div class="lbl">glaucoma frente a 482 sanas (25,8 %)</div></div>
-          <div class="metric"><div class="num">≤ 641</div><div class="lbl">ojos distintos (9 pares son el mismo ojo)</div></div>
-          <div class="metric"><div class="num">?</div><div class="lbl">personas: no hay ID de paciente; el SERI no respondió</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>2 / 8</span></div>
+<div class="plate" style="left:44px;top:44px;width:1010px;height:992px">
+<span class="k" style="left:60px;top:40px;width:430px">1.</span><img class="f o" src="img/test_262.jpg" alt="Retina sana" style="left:60px;top:80px;width:430px;height:430px">
+<span class="k" style="left:520px;top:40px;width:430px">2.</span><img class="f o" src="img/test_366.jpg" alt="Retina con glaucoma" style="left:520px;top:80px;width:430px;height:430px">
+<svg style="left:0;top:0;width:1010px;height:992px" viewBox="0 0 1010 992"><g fill="none" stroke-width="2"><path d="M400,296 V466 M650,290 V500" stroke="#0d0a08"/><path d="M400,466 V600 M650,500 V600" stroke="#fade8c"/></g><g fill="#0d0a08"><circle cx="400" cy="296" r="7"/><circle cx="650" cy="290" r="7"/></g></svg>
+<p class="cap" data-edit style="left:60px;top:614px;width:420px;font-size:26px"><b>Copa pequeña.</b> Etiqueta de referencia: sano (test/262).</p>
+<p class="cap" data-edit style="left:520px;top:614px;width:430px;font-size:26px"><b>Copa amplia.</b> Etiqueta de referencia: glaucoma (test/366).</p>
+<p class="cap" data-edit style="left:60px;top:760px;width:890px;font-size:34px;font-family:var(--serif);line-height:1.3;color:var(--disc)">El glaucoma daña el nervio óptico y la visión perdida no se recupera. Una señal es la copa pálida que crece dentro del disco.</p>
+<p class="cap" data-edit style="left:60px;top:930px;width:890px;font-size:22px;opacity:.75">Las señales son ilustrativas, del equipo: esta copia no trae contornos clínicos.</p>
+</div>
+<h2 data-edit style="left:1110px;top:84px;width:740px">Queremos ayudar al médico a encontrar el glaucoma en una foto del fondo de ojo</h2>
+<div class="t" data-edit style="left:1110px;top:400px;width:740px"><dl>
+<dt>Recibe</dt><dd>un recorte a color centrado en el disco óptico.</dd>
+<dt>Entrega</dt><dd>una puntuación de 0 a 1 y un aviso: glaucoma (clase positiva) o sano.</dd>
+<dt>Decide</dt><dd>el médico. El aviso orienta, no diagnostica.</dd></dl></div>
+<div class="t" data-edit style="left:1110px;top:706px;width:740px;border-top:1.5px solid var(--ink);padding-top:26px">
+<p><b>650 imágenes</b> de ORIGA-light (copia de Kaggle, licencia MIT): 168 con glaucoma y 482 sanas.</p>
+<p>Son <b>a lo sumo 641 ojos</b>, porque 9 pares repiten el mismo. El número de personas no es verificable: no hay ID de paciente y el SERI no respondió.</p></div>
+<span class="page">2</span>
 </section>
 
-<!-- === 3. PARTICIÓN Y FUGA === -->
+<!-- === 3. PARTICIÓN === -->
 <section class="slide">
-  <div class="frame">
-    <p class="kicker">2 · Partición y control de fuga</p>
-    <h2 data-edit>Separamos por imagen y buscamos repeticiones del mismo ojo</h2>
-    <div class="cols" style="grid-template-columns: 0.9fr 1.1fr; gap: 50px; margin-top: 34px;">
-      <div class="reveal">
-        <table class="t">
-          <tr><th>Partición</th><th class="r">Imágenes</th><th class="r">Glaucoma</th><th class="r">Sano</th></tr>
-          <tr><td>Entrenamiento</td><td class="r">363</td><td class="r">94</td><td class="r">269</td></tr>
-          <tr><td>Validación</td><td class="r">91</td><td class="r">23</td><td class="r">68</td></tr>
-          <tr><td>Prueba evaluada</td><td class="r">192</td><td class="r">49</td><td class="r">143</td></tr>
-          <tr><td style="color:var(--muted)">Prueba excluida</td><td class="r" style="color:var(--muted)">4</td><td class="r" style="color:var(--muted)">2</td><td class="r" style="color:var(--muted)">2</td></tr>
-        </table>
-        <p class="lbl" style="margin-top:18px" data-edit>Validación: 20 % estratificado de <span class="mono">train</span>, semilla 42. Prueba: <span class="mono">ORIGA/test</span>.</p>
-        <div class="warn" style="margin-top:26px" data-edit><b>Límite:</b> sin ID de paciente, la separación por persona <b>no es verificable</b>. Los dos ojos de una persona podrían quedar en particiones distintas.</div>
-      </div>
-      <figure class="reveal">
-        <img src="img/pares_mismo_ojo.png" alt="Pares del mismo ojo entre particiones" style="width:100%; border:1px solid var(--rule); border-radius:6px;">
-        <figcaption data-edit>Códigos sin cruce y 0 duplicados MD5. Con pHash y revisión a ojo encontramos 9 pares del mismo ojo, 5 entre particiones; las 4 imágenes de prueba con gemelo se excluyen.</figcaption>
-      </figure>
-    </div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>3 / 8</span></div>
+<h2 data-edit style="left:84px;top:84px;width:620px">Antes de ofrecer ayuda, buscamos el mismo ojo en dos particiones</h2>
+<svg style="left:84px;top:384px;width:610px;height:270px" viewBox="0 0 610 270"><text x="0" y="24" class="tb">Entrenamiento</text><text x="610" y="24" class="tb" text-anchor="end">363 (94 con glaucoma)</text>
+<rect x="0" y="38" width="158.0" height="26" fill="#c53a1a"/><rect x="161.0" y="38" width="449.0" height="26" fill="#8a8640"/><text x="0" y="120" class="tb">Validación</text><text x="610" y="120" class="tb" text-anchor="end">91 (23 con glaucoma)</text>
+<rect x="0" y="134" width="38.7" height="26" fill="#c53a1a"/><rect x="41.7" y="134" width="111.3" height="26" fill="#8a8640"/><text x="0" y="216" class="tb">Prueba</text><text x="610" y="216" class="tb" text-anchor="end">192 (49 con glaucoma)</text>
+<rect x="0" y="230" width="82.3" height="26" fill="#c53a1a"/><rect x="85.3" y="230" width="237.3" height="26" fill="#8a8640"/></svg>
+<div class="t small" data-edit style="left:84px;top:672px;width:620px">
+<p><span class="red"><b>Rojo</b></span>, glaucoma; <b style="color:#6d6a2c">oliva</b>, sano. Validación: 20 % estratificado de <i>train</i>, semilla 42. De las 196 de prueba se excluyeron 4.</p>
+<p>Los códigos no se cruzan y no hay duplicados MD5. Con pHash y revisión a ojo hallamos 9 pares del mismo ojo, 5 entre particiones.</p>
+<p><b>Límite:</b> sin ID de paciente, no podemos verificar que una persona no esté en dos particiones.</p></div>
+<div class="plate" style="left:770px;top:44px;width:1106px;height:992px"><span class="k" style="left:50px;top:56px;width:186px">1.</span>
+<img class="f" src="img/train_026.jpg" alt="train/026" style="left:50px;top:96px;width:186px;height:186px">
+<p class="cap" style="left:50px;top:300px;width:200px">train/026<br><i>entrenamiento</i></p>
+<img class="f" src="img/train_027.jpg" alt="train/027" style="left:50px;top:420px;width:186px;height:186px">
+<p class="cap" style="left:50px;top:624px;width:200px">train/027<br><i>validación</i></p>
+<p class="cap" style="left:50px;top:716px;width:200px;color:#f2c879">d = 12</p><span class="k" style="left:254px;top:56px;width:186px">2.</span>
+<img class="f" src="img/train_159.jpg" alt="train/159" style="left:254px;top:96px;width:186px;height:186px">
+<p class="cap" style="left:254px;top:300px;width:200px">train/159<br><i>entrenamiento</i></p>
+<img class="f" src="img/test_158.jpg" alt="test/158" style="left:254px;top:420px;width:186px;height:186px">
+<p class="cap" style="left:254px;top:624px;width:200px">test/158<br><i>prueba</i></p>
+<p class="cap" style="left:254px;top:716px;width:200px;color:#f2c879">d = 4</p><span class="k" style="left:458px;top:56px;width:186px">3.</span>
+<img class="f" src="img/train_169.jpg" alt="train/169" style="left:458px;top:96px;width:186px;height:186px">
+<p class="cap" style="left:458px;top:300px;width:200px">train/169<br><i>entrenamiento</i></p>
+<img class="f" src="img/test_170.jpg" alt="test/170" style="left:458px;top:420px;width:186px;height:186px">
+<p class="cap" style="left:458px;top:624px;width:200px">test/170<br><i>prueba</i></p>
+<p class="cap" style="left:458px;top:716px;width:200px;color:#f2c879">d = 10</p><span class="k" style="left:662px;top:56px;width:186px">4.</span>
+<img class="f" src="img/train_180.jpg" alt="train/180" style="left:662px;top:96px;width:186px;height:186px">
+<p class="cap" style="left:662px;top:300px;width:200px">train/180<br><i>entrenamiento</i></p>
+<img class="f" src="img/test_181.jpg" alt="test/181" style="left:662px;top:420px;width:186px;height:186px">
+<p class="cap" style="left:662px;top:624px;width:200px">test/181<br><i>prueba</i></p>
+<p class="cap" style="left:662px;top:716px;width:200px;color:#f2c879">d = 2</p><span class="k" style="left:866px;top:56px;width:186px">5.</span>
+<img class="f" src="img/train_314.jpg" alt="train/314" style="left:866px;top:96px;width:186px;height:186px">
+<p class="cap" style="left:866px;top:300px;width:200px">train/314<br><i>entrenamiento</i></p>
+<img class="f" src="img/test_313.jpg" alt="test/313" style="left:866px;top:420px;width:186px;height:186px">
+<p class="cap" style="left:866px;top:624px;width:200px">test/313<br><i>prueba</i></p>
+<p class="cap" style="left:866px;top:716px;width:200px;color:#f2c879">d = 8</p>
+<p class="cap" data-edit style="left:48px;top:800px;width:1010px;font-size:34px;font-family:var(--serif);line-height:1.3;color:var(--disc)">Dos tomas del mismo ojo le darían al modelo una respuesta que ya vio. Las cuatro de prueba (2 a 5) quedaron fuera de la evaluación.</p>
+<p class="cap" data-edit style="left:48px;top:944px;width:1010px;font-size:22px;opacity:.75">d: distancia pHash entre las dos tomas. El par 1 se mantuvo en validación y su efecto se midió.</p>
+</div>
+<span class="page">3</span>
 </section>
 
 <!-- === 4. MÉTODO === -->
 <section class="slide">
-  <div class="frame">
-    <p class="kicker">3 · Método</p>
-    <h2 data-edit>Cambio principal: la representación de la imagen</h2>
-    <div class="flow reveal">
-      <div class="step"><h3>Entrada</h3><p>Recorte JPG RGB y etiqueta del CSV</p></div>
-      <div class="step"><h3>Preparación</h3><p>Base: 256 px, [0,1]. Variantes: 224 px, normalización de ImageNet</p></div>
-      <div class="step"><h3>Método</h3><p>Base: 8 rasgos de color y palidez + regresión logística (LR)<br>V1/V2: ResNet-18 fija + LR · V3: ajuste fino</p></div>
-      <div class="step"><h3>Evaluación</h3><p>Validación (91): comparar, elegir y fijar el umbral<br>Prueba (192): una sola vez</p></div>
-    </div>
-    <div class="cols reveal" style="grid-template-columns: 1fr 1fr; margin-top: 40px;">
-      <ul class="pts" data-edit>
-        <li><b>V1:</b> 512 rasgos de ResNet-18 de ImageNet con la <b>misma</b> LR de la base (C = 1)</li>
-        <li><b>V2:</b> igual, con C elegido por CV <b>solo en entrenamiento</b> (C = 10⁻⁴)</li>
-        <li><b>V3:</b> ajuste fino de <span class="mono">layer4</span>, con 20 épocas fijas y aumento de datos</li>
-      </ul>
-      <ul class="pts" data-edit>
-        <li><b>Por qué:</b> la base respondía al brillo y no a la copa; la transferencia desde ImageNet ayuda con pocos datos (Christopher et al., 2018)</li>
-        <li><b>Regla fijada antes de comparar:</b> gana el mayor AUC en validación; si la diferencia es menor de 0,01, gana la más simple</li>
-      </ul>
-    </div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>4 / 8</span></div>
+<div class="plate" style="left:44px;top:44px;width:1832px;height:560px">
+<img class="f o" src="img/train_233.jpg" alt="train/233" style="left:56px;top:60px;width:372px;height:372px">
+<p class="cap" data-edit style="left:56px;top:450px;width:400px"><b>train/233</b>, validación.<br>Etiqueta de referencia: glaucoma</p>
+<svg style="left:0;top:0;width:1832px;height:560px" viewBox="0 0 1832 560"><g stroke="#efe2bd" stroke-width="1.6" fill="none">
+<path d="M446,246 H500 M500,130 V392 M500,130 H550 M500,392 H550 M1230,130 H1330 M1230,392 H1330"/></g><g fill="#efe2bd"><path d="M1330,124 l14,6 l-14,6z M1330,386 l14,6 l-14,6z"/></g></svg>
+<div style="position:absolute;left:570px;top:60px;width:140px;height:140px;border-radius:50%;background:rgb(182,97,27)"></div>
+<p class="cap" data-edit style="left:744px;top:56px;width:480px;font-size:26px"><b>Base: 8 medidas de color</b><br>256 px. Media y desviación de R, G y B en el disco, y palidez centro/anillo (0,996 y 1,043)</p>
+<img class="f" src="img/rasgos512.png" alt="512 rasgos" style="left:570px;top:282px;width:440px;height:220px;image-rendering:pixelated">
+<p class="cap" data-edit style="left:1034px;top:282px;width:200px;font-size:26px"><b>V2: 512 rasgos</b><br>de ResNet-18 preentrenada en ImageNet, 224 px</p>
+<p class="cap" data-edit style="left:1400px;top:60px;width:420px;font:400 112px/1 var(--serif)">0,004</p><p class="cap" data-edit style="left:1404px;top:176px;width:420px;font-size:26px">sano: no avisa</p>
+<p class="cap" data-edit style="left:1400px;top:322px;width:420px;font:400 112px/1 var(--serif);color:var(--disc)">0,566</p><p class="cap" data-edit style="left:1404px;top:438px;width:420px;font-size:26px;color:var(--disc)">glaucoma: avisa</p>
+<p class="cap" data-edit style="left:1404px;top:246px;width:400px;font-size:26px;font-style:italic">Ambas con regresión logística</p>
+</div>
+<h2 data-edit style="left:84px;top:650px;width:560px">Cambiamos lo que el modelo recibe: del color a los rasgos de una red</h2>
+<div class="t" data-edit style="left:700px;top:654px;width:560px;font-size:26px"><dl style="grid-template-columns:70px 1fr;row-gap:12px">
+<dt>V1</dt><dd>misma regresión logística de la base (C&nbsp;=&nbsp;1), con los 512 rasgos.</dd>
+<dt>V2</dt><dd>además, C elegido por validación cruzada solo en entrenamiento (10<sup>−4</sup>).</dd>
+<dt>V3</dt><dd>ajuste fino de <i>layer4</i>, 20 épocas fijas y aumento de datos.</dd></dl></div>
+<div class="t" data-edit style="left:1316px;top:654px;width:540px;font-size:26px">
+<p>La base respondía al brillo de la foto. Con pocos datos, partir de ImageNet ayuda (Christopher et al., 2018).</p>
+<p><b>Regla escrita antes de comparar:</b> gana el mayor AUC en validación; con menos de 0,01 de diferencia, la versión más simple. El umbral se congela y la prueba se abre una vez.</p></div>
+<span class="page">4</span>
 </section>
 
 <!-- === 5. VALIDACIÓN === -->
 <section class="slide">
-  <div class="frame">
-    <p class="kicker">4 · Resultado en validación (mismas 91 imágenes)</p>
-    <h2 data-edit>Los rasgos de ResNet-18 suben el AUC de 0,67 a 0,83</h2>
-    <div class="cols" style="grid-template-columns: 1.25fr 0.75fr; gap: 50px; margin-top: 30px;">
-      <div class="reveal">
-        <table class="t">
-          <tr><th>Versión</th><th class="r">Sens. (0,5)</th><th class="r">Esp. (0,5)</th><th class="r">AUC (IC 95 %)</th><th class="r">AUC ent.</th></tr>
-          <tr><td>Base</td><td class="r">16/23</td><td class="r">43/68</td><td class="r">0,667 (0,54–0,78)</td><td class="r">0,649</td></tr>
-          <tr><td>V1 · C = 1</td><td class="r">13/23</td><td class="r">57/68</td><td class="r">0,797 (0,67–0,90)</td><td class="r">1,000</td></tr>
-          <tr class="sel"><td>V2 · C por CV</td><td class="r">17/23</td><td class="r">52/68</td><td class="r">0,831 (0,74–0,91)</td><td class="r">0,810</td></tr>
-          <tr><td>V3 · ajuste fino</td><td class="r">9/23</td><td class="r">66/68</td><td class="r">0,837 (0,73–0,93)</td><td class="r">0,999</td></tr>
-        </table>
-        <ul class="pts" style="margin-top:22px" data-edit>
-          <li>V1 y V3 memorizan el entrenamiento (AUC de entrenamiento ≈ 1)</li>
-          <li><b>Elegida: V2.</b> Empata con V3 (diferencia de 0,006) y es más simple</li>
-          <li>Umbral congelado: <span class="hl mono">0,4834</span>, la especificidad de la base (43/68), que da sensibilidad 21/23</li>
-        </ul>
-      </div>
-      <figure class="reveal">
-        <img src="img/roc_comparacion_validacion.png" alt="ROC en validación" style="width:100%;">
-      </figure>
-    </div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>5 / 8</span></div>
+<h2 data-edit style="left:84px;top:84px;width:1080px">En las mismas 91 retinas de validación, V2 sube el AUC de 0,667 a 0,831</h2>
+<svg style="left:98px;top:258px;width:1060px;height:560px" viewBox="0 0 1060 560"><line x1="250" x2="250" y1="52" y2="500" stroke="#17110c" stroke-opacity="0.45"/><text x="250" y="534" class="ts" text-anchor="middle">0,5</text><line x1="362" x2="362" y1="52" y2="500" stroke="#17110c" stroke-opacity="0.14"/><text x="362" y="534" class="ts" text-anchor="middle">0,6</text><line x1="474" x2="474" y1="52" y2="500" stroke="#17110c" stroke-opacity="0.14"/><text x="474" y="534" class="ts" text-anchor="middle">0,7</text><line x1="586" x2="586" y1="52" y2="500" stroke="#17110c" stroke-opacity="0.14"/><text x="586" y="534" class="ts" text-anchor="middle">0,8</text><line x1="698" x2="698" y1="52" y2="500" stroke="#17110c" stroke-opacity="0.14"/><text x="698" y="534" class="ts" text-anchor="middle">0,9</text><line x1="810" x2="810" y1="52" y2="500" stroke="#17110c" stroke-opacity="0.14"/><text x="810" y="534" class="ts" text-anchor="middle">1,0</text><text x="890" y="34" class="ts" text-anchor="middle">Sens.</text><text x="1000" y="34" class="ts" text-anchor="middle">Esp.</text><text x="530" y="34" class="ts" text-anchor="middle">AUC en validación (IC 95 %)</text><text x="0" y="112" class="tn" fill="#17110c">Base</text><text x="0" y="142" class="ts">8 medidas de color</text>
+<line x1="295" x2="564" y1="110" y2="110" stroke="#17110c" stroke-width="3"/>
+<circle cx="417" cy="110" r="9" fill="#ecdfb9" stroke="#17110c" stroke-width="2.5"/>
+<circle cx="437" cy="110" r="10" fill="#17110c"/>
+<text x="437" y="86" class="tv" fill="#17110c" text-anchor="middle">0,667</text>
+<text x="890" y="119" class="tv" text-anchor="middle">16/23</text><text x="1000" y="119" class="tv" text-anchor="middle">43/68</text><text x="0" y="224" class="tn" fill="#17110c">V1</text><text x="0" y="254" class="ts">ResNet-18, C = 1</text>
+<line x1="440" x2="698" y1="222" y2="222" stroke="#17110c" stroke-width="3"/>
+<circle cx="810" cy="222" r="9" fill="#ecdfb9" stroke="#17110c" stroke-width="2.5"/>
+<circle cx="583" cy="222" r="10" fill="#17110c"/>
+<text x="583" y="198" class="tv" fill="#17110c" text-anchor="middle">0,797</text>
+<text x="890" y="231" class="tv" text-anchor="middle">13/23</text><text x="1000" y="231" class="tv" text-anchor="middle">57/68</text><rect x="-14" y="280" width="1074" height="108" fill="#f7eccb"/><text x="0" y="336" class="tn" fill="#c53a1a">V2</text><text x="0" y="366" class="ts">C por validación cruzada</text>
+<line x1="519" x2="709" y1="334" y2="334" stroke="#c53a1a" stroke-width="5"/>
+<circle cx="597" cy="334" r="9" fill="#ecdfb9" stroke="#c53a1a" stroke-width="2.5"/>
+<circle cx="621" cy="334" r="13" fill="#c53a1a"/>
+<text x="621" y="310" class="tv" fill="#c53a1a" text-anchor="middle">0,831</text>
+<text x="890" y="343" class="tv" text-anchor="middle">17/23</text><text x="1000" y="343" class="tv" text-anchor="middle">52/68</text><text x="0" y="448" class="tn" fill="#17110c">V3</text><text x="0" y="478" class="ts">ajuste fino</text>
+<line x1="508" x2="732" y1="446" y2="446" stroke="#17110c" stroke-width="3"/>
+<circle cx="809" cy="446" r="9" fill="#ecdfb9" stroke="#17110c" stroke-width="2.5"/>
+<circle cx="627" cy="446" r="10" fill="#17110c"/>
+<text x="627" y="422" class="tv" fill="#17110c" text-anchor="middle">0,837</text>
+<text x="890" y="455" class="tv" text-anchor="middle">9/23</text><text x="1000" y="455" class="tv" text-anchor="middle">66/68</text></svg>
+<div class="t small" data-edit style="left:84px;top:816px;width:1090px">
+<p>Punto lleno: validación (n = 91; 23 con glaucoma). Círculo vacío: entrenamiento. Sens. y Esp. con umbral 0,5.</p>
+<p>V1 y V3 memorizan: llegan a 1,00 en entrenamiento. V3 y V2 empatan (0,006), así que gana <b>V2</b>, más simple. Su ventaja sobre la base es de +0,16 (IC 95 %: 0,04 a 0,31).</p></div>
+<div class="plate" style="left:1230px;top:44px;width:646px;height:992px">
+<svg style="left:76px;top:70px;width:510px;height:510px" viewBox="-10 -10 1020 1020"><rect x="0" y="0" width="1000" height="1000" fill="none" stroke="#efe2bd" stroke-opacity=".45" stroke-width="2"/><path d="M0,1000 L1000,0" stroke="#efe2bd" stroke-opacity=".35" stroke-width="2"/>
+<path d="M0.0,1000.0 L0.0,956.5 L14.7,956.5 L29.4,956.5 L44.1,956.5 L58.8,956.5 L58.8,913.0 L73.5,913.0 L73.5,869.6 L88.2,869.6 L102.9,869.6 L102.9,826.1 L102.9,782.6 L117.6,782.6 L132.4,782.6 L132.4,739.1 L147.1,739.1 L161.8,739.1 L176.5,739.1 L176.5,695.7 L176.5,652.2 L191.2,652.2 L205.9,652.2 L205.9,608.7 L205.9,565.2 L205.9,521.7 L220.6,521.7 L235.3,521.7 L250.0,521.7 L264.7,521.7 L279.4,521.7 L294.1,521.7 L308.8,521.7 L308.8,478.3 L308.8,434.8 L308.8,391.3 L323.5,391.3 L323.5,347.8 L323.5,304.3 L338.2,304.3 L352.9,304.3 L367.6,304.3 L382.4,304.3 L397.1,304.3 L411.8,304.3 L426.5,304.3 L441.2,304.3 L441.2,260.9 L455.9,260.9 L455.9,217.4 L470.6,217.4 L470.6,173.9 L485.3,173.9 L500.0,173.9 L514.7,173.9 L529.4,173.9 L544.1,173.9 L558.8,173.9 L573.5,173.9 L588.2,173.9 L602.9,173.9 L617.6,173.9 L632.4,173.9 L647.1,173.9 L647.1,130.4 L661.8,130.4 L676.5,130.4 L691.2,130.4 L705.9,130.4 L720.6,130.4 L735.3,130.4 L750.0,130.4 L764.7,130.4 L779.4,130.4 L794.1,130.4 L808.8,130.4 L808.8,87.0 L823.5,43.5 L838.2,43.5 L852.9,43.5 L867.6,43.5 L882.4,43.5 L897.1,43.5 L911.8,43.5 L926.5,43.5 L941.2,43.5 L955.9,43.5 L970.6,43.5 L985.3,43.5 L1000.0,43.5 L1000.0,0.0" fill="none" stroke="#b9b463" stroke-width="6" stroke-dasharray="16 10"/><path d="M0.0,1000.0 L14.7,1000.0 L14.7,956.5 L14.7,913.0 L29.4,913.0 L29.4,869.6 L29.4,826.1 L29.4,782.6 L29.4,739.1 L29.4,695.7 L29.4,652.2 L44.1,652.2 L58.8,652.2 L73.5,652.2 L88.2,652.2 L102.9,652.2 L102.9,608.7 L102.9,565.2 L117.6,565.2 L117.6,521.7 L117.6,478.3 L132.4,478.3 L132.4,434.8 L132.4,391.3 L147.1,391.3 L161.8,391.3 L176.5,391.3 L191.2,391.3 L205.9,391.3 L205.9,347.8 L205.9,304.3 L220.6,304.3 L220.6,260.9 L235.3,260.9 L250.0,260.9 L264.7,260.9 L264.7,217.4 L264.7,173.9 L279.4,173.9 L294.1,173.9 L308.8,173.9 L308.8,87.0 L323.5,87.0 L338.2,87.0 L352.9,87.0 L367.6,87.0 L382.4,87.0 L397.1,87.0 L426.5,87.0 L441.2,87.0 L441.2,43.5 L455.9,43.5 L470.6,43.5 L485.3,43.5 L500.0,43.5 L514.7,43.5 L529.4,43.5 L544.1,43.5 L558.8,43.5 L573.5,43.5 L588.2,43.5 L602.9,43.5 L617.6,43.5 L632.4,43.5 L647.1,43.5 L661.8,43.5 L676.5,43.5 L691.2,43.5 L705.9,43.5 L720.6,43.5 L735.3,43.5 L750.0,43.5 L764.7,0.0 L779.4,0.0 L808.8,0.0 L823.5,0.0 L838.2,0.0 L852.9,0.0 L867.6,0.0 L882.4,0.0 L897.1,0.0 L911.8,0.0 L926.5,0.0 L941.2,0.0 L955.9,0.0 L970.6,0.0 L985.3,0.0 L1000.0,0.0" fill="none" stroke="#fade8c" stroke-width="9"/>
+<circle cx="367.6" cy="87.0" r="19" fill="#f0502a" stroke="#0d0a08" stroke-width="5"/>
+<text x="110" y="130" font-size="50" fill="#fade8c" font-weight="600">V2</text><text x="440" y="400" font-size="50" fill="#b9b463">Base</text></svg>
+<p class="cap" style="left:76px;top:590px;width:510px;font-size:23px;text-align:center">1 − especificidad</p>
+<p class="cap" style="left:-100px;top:310px;width:300px;font-size:23px;text-align:center;transform:rotate(-90deg)">sensibilidad</p>
+<p class="cap" data-edit style="left:76px;top:648px;width:510px;font-size:34px;font-family:var(--serif);line-height:1.28;color:var(--disc)">Con las mismas falsas alarmas que la base, V2 encuentra 21 de 23 glaucomas. La base encuentra 16.</p>
+<p class="cap" data-edit style="left:76px;top:856px;width:510px;font-size:24px">El punto rojo fija el umbral de V2: <b>0,4834</b> (especificidad 43/68), congelado antes de la prueba.</p>
+</div>
+<span class="page">5</span>
 </section>
 
 <!-- === 6. PRUEBA === -->
 <section class="slide">
-  <div class="frame">
-    <p class="kicker">5 · Resultado final en prueba (V2, una sola vez)</p>
-    <h2 data-edit>Detecta 40 de 49 glaucomas, con muchas falsas alarmas</h2>
-    <div class="cols" style="grid-template-columns: 1.15fr 0.85fr; gap: 50px; margin-top: 34px;">
-      <div class="reveal">
-        <div class="metrics">
-          <div class="metric"><div class="num">0,816</div><div class="den">40/49</div><div class="lbl">sensibilidad (IC 0,69–0,92)</div></div>
-          <div class="metric"><div class="num">0,524</div><div class="den">75/143</div><div class="lbl">especificidad (IC 0,44–0,60)</div></div>
-          <div class="metric"><div class="num">0,751</div><div class="den">n = 192</div><div class="lbl">AUC (IC 0,66–0,83)</div></div>
-        </div>
-        <ul class="pts" style="margin-top:26px" data-edit>
-          <li><b>Mejoró</b> frente a la base en validación: +0,16 de AUC (IC 0,04–0,31)</li>
-          <li><b>Empeoró</b> de validación a prueba: AUC de 0,83 a 0,75 y especificidad de 0,63 a 0,52</li>
-          <li>Las puntuaciones están comprimidas entre 0,39 y 0,61, y el umbral queda en la mediana de las sanas: es frágil</li>
-        </ul>
-      </div>
-      <figure class="reveal" style="display:flex; flex-direction:column; align-items:center;">
-        <img src="img/matriz_confusion_prueba.png" alt="Matriz de confusión en prueba" style="height:660px;">
-        <figcaption data-edit>La base no se evaluó en prueba (la guía no lo exige).</figcaption>
-      </figure>
-    </div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>6 / 8</span></div>
-</section>
-
-<!-- === 7. ERROR, CASO LÍMITE Y DEMO === -->
-<section class="slide">
-  <div class="frame">
-    <p class="kicker">6 · Error, caso límite y ejecución</p>
-    <h2 data-edit>El modelo no mira donde mira un oftalmólogo</h2>
-    <div class="cols" style="grid-template-columns: 0.92fr 1.08fr; gap: 48px; margin-top: 30px;">
-      <figure class="reveal">
-        <img src="img/casos_analizados_prueba.png" alt="Casos analizados con Grad-CAM" style="width:100%; max-height:790px; object-fit:contain;">
-      </figure>
-      <div class="reveal">
-        <ul class="pts" data-edit>
-          <li><b>test/580, FN</b> (p = 0,420): el disco está descentrado y el Grad-CAM cae en el borde, no en la copa. <i>Hipótesis:</i> los rasgos globales mezclan el disco con la retina</li>
-          <li><b>test/183, FP límite</b> (p = 0,4836, a 0,0001 del umbral): toma desenfocada, sin bordes nítidos</li>
-        </ul>
-        <pre class="term" style="margin-top:22px"><span class="p">$</span> python predecir.py ../archive/ORIGA/test/580.jpg ../archive/ORIGA/test/240.jpg
-V2: ResNet-18 congelada + LR balanceada (C por CV en entrenamiento) | umbral 0.4834
-test/580: puntuación 0.4200 -> sano | referencia: glaucoma (prueba)
-test/240: puntuación 0.5328 -> glaucoma | referencia: glaucoma (prueba)</pre>
-        <p class="lbl" style="margin-top:12px" data-edit>Inferencia con los pesos congelados (sin reentrenar). Coincide con <span class="mono">predicciones_prueba.csv</span>.</p>
-      </div>
-    </div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>7 / 8</span></div>
-</section>
-
-<!-- === 8. CONCLUSIÓN === -->
-<section class="slide">
-  <div class="frame">
-    <p class="kicker">7 · Conclusión</p>
-    <h2 data-edit>Hay señal, pero no basta para tamizaje</h2>
-    <div class="cols" style="grid-template-columns: 1fr 1fr; gap: 56px;">
-      <div class="panel reveal">
-        <p class="kicker" style="color:var(--good)">Lo que sí podemos decir</p>
-        <ul class="pts" data-edit>
-          <li>En prueba, AUC de 0,75 (192 imágenes nunca usadas para ajustar): mejor que el azar</li>
-          <li>Los rasgos preentrenados superan a las medidas de color en validación (+0,16)</li>
-          <li>Regularizar es necesario: sin regularización, el modelo memoriza</li>
-        </ul>
-      </div>
-      <div class="panel reveal">
-        <p class="kicker">Lo que no podemos concluir</p>
-        <ul class="pts" data-edit>
-          <li>Utilidad clínica ni desempeño en otras poblaciones o cámaras</li>
-          <li>Que el modelo use la copa óptica (Grad-CAM)</li>
-          <li>Que V2 sea mejor que V3 (sus intervalos se solapan)</li>
-        </ul>
-      </div>
-    </div>
-    <div class="warn reveal" style="margin-top:36px" data-edit><b>Trabajo futuro prioritario:</b> conseguir los datos oficiales con ID de paciente, repetir la partición por persona y validar en un conjunto externo (por ejemplo, REFUGE).</div>
-  </div>
-  <div class="foot"><span>Equipo 02 · Proyecto B</span><span>8 / 8</span></div>
-</section>
-
+<div class="plate" style="left:44px;top:44px;width:1190px;height:992px">
+<svg style="left:55px;top:52px;width:1080px;height:860px" viewBox="0 0 1080 860"><g transform="translate(0,46)"><clipPath id="cVP"><circle cx="27" cy="27" r="24"/><circle cx="81" cy="27" r="24"/><circle cx="135" cy="27" r="24"/><circle cx="189" cy="27" r="24"/><circle cx="243" cy="27" r="24"/><circle cx="297" cy="27" r="24"/><circle cx="351" cy="27" r="24"/><circle cx="405" cy="27" r="24"/><circle cx="459" cy="27" r="24"/><circle cx="513" cy="27" r="24"/><circle cx="567" cy="27" r="24"/><circle cx="621" cy="27" r="24"/><circle cx="675" cy="27" r="24"/><circle cx="729" cy="27" r="24"/><circle cx="783" cy="27" r="24"/><circle cx="837" cy="27" r="24"/><circle cx="891" cy="27" r="24"/><circle cx="945" cy="27" r="24"/><circle cx="999" cy="27" r="24"/><circle cx="1053" cy="27" r="24"/><circle cx="27" cy="81" r="24"/><circle cx="81" cy="81" r="24"/><circle cx="135" cy="81" r="24"/><circle cx="189" cy="81" r="24"/><circle cx="243" cy="81" r="24"/><circle cx="297" cy="81" r="24"/><circle cx="351" cy="81" r="24"/><circle cx="405" cy="81" r="24"/><circle cx="459" cy="81" r="24"/><circle cx="513" cy="81" r="24"/><circle cx="567" cy="81" r="24"/><circle cx="621" cy="81" r="24"/><circle cx="675" cy="81" r="24"/><circle cx="729" cy="81" r="24"/><circle cx="783" cy="81" r="24"/><circle cx="837" cy="81" r="24"/><circle cx="891" cy="81" r="24"/><circle cx="945" cy="81" r="24"/><circle cx="999" cy="81" r="24"/><circle cx="1053" cy="81" r="24"/></clipPath><image href="img/mosaico_VP.jpg" width="1080" height="108" preserveAspectRatio="none" clip-path="url(#cVP)" opacity="1"/><g fill="none" stroke="#fade8c" stroke-width="3"><circle cx="27" cy="27" r="25"/><circle cx="81" cy="27" r="25"/><circle cx="135" cy="27" r="25"/><circle cx="189" cy="27" r="25"/><circle cx="243" cy="27" r="25"/><circle cx="297" cy="27" r="25"/><circle cx="351" cy="27" r="25"/><circle cx="405" cy="27" r="25"/><circle cx="459" cy="27" r="25"/><circle cx="513" cy="27" r="25"/><circle cx="567" cy="27" r="25"/><circle cx="621" cy="27" r="25"/><circle cx="675" cy="27" r="25"/><circle cx="729" cy="27" r="25"/><circle cx="783" cy="27" r="25"/><circle cx="837" cy="27" r="25"/><circle cx="891" cy="27" r="25"/><circle cx="945" cy="27" r="25"/><circle cx="999" cy="27" r="25"/><circle cx="1053" cy="27" r="25"/><circle cx="27" cy="81" r="25"/><circle cx="81" cy="81" r="25"/><circle cx="135" cy="81" r="25"/><circle cx="189" cy="81" r="25"/><circle cx="243" cy="81" r="25"/><circle cx="297" cy="81" r="25"/><circle cx="351" cy="81" r="25"/><circle cx="405" cy="81" r="25"/><circle cx="459" cy="81" r="25"/><circle cx="513" cy="81" r="25"/><circle cx="567" cy="81" r="25"/><circle cx="621" cy="81" r="25"/><circle cx="675" cy="81" r="25"/><circle cx="729" cy="81" r="25"/><circle cx="783" cy="81" r="25"/><circle cx="837" cy="81" r="25"/><circle cx="891" cy="81" r="25"/><circle cx="945" cy="81" r="25"/><circle cx="999" cy="81" r="25"/><circle cx="1053" cy="81" r="25"/></g></g><g transform="translate(0,216)"><clipPath id="cFP"><circle cx="27" cy="27" r="24"/><circle cx="81" cy="27" r="24"/><circle cx="135" cy="27" r="24"/><circle cx="189" cy="27" r="24"/><circle cx="243" cy="27" r="24"/><circle cx="297" cy="27" r="24"/><circle cx="351" cy="27" r="24"/><circle cx="405" cy="27" r="24"/><circle cx="459" cy="27" r="24"/><circle cx="513" cy="27" r="24"/><circle cx="567" cy="27" r="24"/><circle cx="621" cy="27" r="24"/><circle cx="675" cy="27" r="24"/><circle cx="729" cy="27" r="24"/><circle cx="783" cy="27" r="24"/><circle cx="837" cy="27" r="24"/><circle cx="891" cy="27" r="24"/><circle cx="945" cy="27" r="24"/><circle cx="999" cy="27" r="24"/><circle cx="1053" cy="27" r="24"/><circle cx="27" cy="81" r="24"/><circle cx="81" cy="81" r="24"/><circle cx="135" cy="81" r="24"/><circle cx="189" cy="81" r="24"/><circle cx="243" cy="81" r="24"/><circle cx="297" cy="81" r="24"/><circle cx="351" cy="81" r="24"/><circle cx="405" cy="81" r="24"/><circle cx="459" cy="81" r="24"/><circle cx="513" cy="81" r="24"/><circle cx="567" cy="81" r="24"/><circle cx="621" cy="81" r="24"/><circle cx="675" cy="81" r="24"/><circle cx="729" cy="81" r="24"/><circle cx="783" cy="81" r="24"/><circle cx="837" cy="81" r="24"/><circle cx="891" cy="81" r="24"/><circle cx="945" cy="81" r="24"/><circle cx="999" cy="81" r="24"/><circle cx="1053" cy="81" r="24"/><circle cx="27" cy="135" r="24"/><circle cx="81" cy="135" r="24"/><circle cx="135" cy="135" r="24"/><circle cx="189" cy="135" r="24"/><circle cx="243" cy="135" r="24"/><circle cx="297" cy="135" r="24"/><circle cx="351" cy="135" r="24"/><circle cx="405" cy="135" r="24"/><circle cx="459" cy="135" r="24"/><circle cx="513" cy="135" r="24"/><circle cx="567" cy="135" r="24"/><circle cx="621" cy="135" r="24"/><circle cx="675" cy="135" r="24"/><circle cx="729" cy="135" r="24"/><circle cx="783" cy="135" r="24"/><circle cx="837" cy="135" r="24"/><circle cx="891" cy="135" r="24"/><circle cx="945" cy="135" r="24"/><circle cx="999" cy="135" r="24"/><circle cx="1053" cy="135" r="24"/><circle cx="27" cy="189" r="24"/><circle cx="81" cy="189" r="24"/><circle cx="135" cy="189" r="24"/><circle cx="189" cy="189" r="24"/><circle cx="243" cy="189" r="24"/><circle cx="297" cy="189" r="24"/><circle cx="351" cy="189" r="24"/><circle cx="405" cy="189" r="24"/></clipPath><image href="img/mosaico_FP.jpg" width="1080" height="216" preserveAspectRatio="none" clip-path="url(#cFP)" opacity="0.8"/></g><g transform="translate(0,494)"><clipPath id="cFN"><circle cx="27" cy="27" r="24"/><circle cx="81" cy="27" r="24"/><circle cx="135" cy="27" r="24"/><circle cx="189" cy="27" r="24"/><circle cx="243" cy="27" r="24"/><circle cx="297" cy="27" r="24"/><circle cx="351" cy="27" r="24"/><circle cx="405" cy="27" r="24"/><circle cx="459" cy="27" r="24"/></clipPath><image href="img/mosaico_FN.jpg" width="1080" height="54" preserveAspectRatio="none" clip-path="url(#cFN)" opacity="1"/><g fill="none" stroke="#f0502a" stroke-width="3"><circle cx="27" cy="27" r="25"/><circle cx="81" cy="27" r="25"/><circle cx="135" cy="27" r="25"/><circle cx="189" cy="27" r="25"/><circle cx="243" cy="27" r="25"/><circle cx="297" cy="27" r="25"/><circle cx="351" cy="27" r="25"/><circle cx="405" cy="27" r="25"/><circle cx="459" cy="27" r="25"/></g></g><g transform="translate(0,610)"><clipPath id="cVN"><circle cx="27" cy="27" r="24"/><circle cx="81" cy="27" r="24"/><circle cx="135" cy="27" r="24"/><circle cx="189" cy="27" r="24"/><circle cx="243" cy="27" r="24"/><circle cx="297" cy="27" r="24"/><circle cx="351" cy="27" r="24"/><circle cx="405" cy="27" r="24"/><circle cx="459" cy="27" r="24"/><circle cx="513" cy="27" r="24"/><circle cx="567" cy="27" r="24"/><circle cx="621" cy="27" r="24"/><circle cx="675" cy="27" r="24"/><circle cx="729" cy="27" r="24"/><circle cx="783" cy="27" r="24"/><circle cx="837" cy="27" r="24"/><circle cx="891" cy="27" r="24"/><circle cx="945" cy="27" r="24"/><circle cx="999" cy="27" r="24"/><circle cx="1053" cy="27" r="24"/><circle cx="27" cy="81" r="24"/><circle cx="81" cy="81" r="24"/><circle cx="135" cy="81" r="24"/><circle cx="189" cy="81" r="24"/><circle cx="243" cy="81" r="24"/><circle cx="297" cy="81" r="24"/><circle cx="351" cy="81" r="24"/><circle cx="405" cy="81" r="24"/><circle cx="459" cy="81" r="24"/><circle cx="513" cy="81" r="24"/><circle cx="567" cy="81" r="24"/><circle cx="621" cy="81" r="24"/><circle cx="675" cy="81" r="24"/><circle cx="729" cy="81" r="24"/><circle cx="783" cy="81" r="24"/><circle cx="837" cy="81" r="24"/><circle cx="891" cy="81" r="24"/><circle cx="945" cy="81" r="24"/><circle cx="999" cy="81" r="24"/><circle cx="1053" cy="81" r="24"/><circle cx="27" cy="135" r="24"/><circle cx="81" cy="135" r="24"/><circle cx="135" cy="135" r="24"/><circle cx="189" cy="135" r="24"/><circle cx="243" cy="135" r="24"/><circle cx="297" cy="135" r="24"/><circle cx="351" cy="135" r="24"/><circle cx="405" cy="135" r="24"/><circle cx="459" cy="135" r="24"/><circle cx="513" cy="135" r="24"/><circle cx="567" cy="135" r="24"/><circle cx="621" cy="135" r="24"/><circle cx="675" cy="135" r="24"/><circle cx="729" cy="135" r="24"/><circle cx="783" cy="135" r="24"/><circle cx="837" cy="135" r="24"/><circle cx="891" cy="135" r="24"/><circle cx="945" cy="135" r="24"/><circle cx="999" cy="135" r="24"/><circle cx="1053" cy="135" r="24"/><circle cx="27" cy="189" r="24"/><circle cx="81" cy="189" r="24"/><circle cx="135" cy="189" r="24"/><circle cx="189" cy="189" r="24"/><circle cx="243" cy="189" r="24"/><circle cx="297" cy="189" r="24"/><circle cx="351" cy="189" r="24"/><circle cx="405" cy="189" r="24"/><circle cx="459" cy="189" r="24"/><circle cx="513" cy="189" r="24"/><circle cx="567" cy="189" r="24"/><circle cx="621" cy="189" r="24"/><circle cx="675" cy="189" r="24"/><circle cx="729" cy="189" r="24"/><circle cx="783" cy="189" r="24"/></clipPath><image href="img/mosaico_VN.jpg" width="1080" height="216" preserveAspectRatio="none" clip-path="url(#cVN)" opacity="0.8"/></g><text x="0" y="30" class="tm"><tspan class="tmn">40</tspan> glaucomas con aviso (verdaderos positivos)</text><text x="0" y="200" class="tm"><tspan class="tmn">68</tspan> sanas con aviso (falsos positivos)</text><text x="0" y="478" class="tm"><tspan class="tmn">9</tspan> glaucomas sin aviso (falsos negativos)</text><text x="0" y="594" class="tm"><tspan class="tmn">75</tspan> sanas sin aviso (verdaderos negativos)</text></svg>
+<p class="cap" data-edit style="left:55px;top:940px;width:1080px;font-size:22px;opacity:.8">Prueba, n = 192. V2 con umbral 0,4834. En cada grupo, de mayor a menor puntuación.</p>
 </div>
-</div>
+<h2 data-edit style="left:1286px;top:84px;width:590px">De 49 glaucomas en la prueba, avisó de 40</h2>
+<div class="t" data-edit style="left:1286px;top:258px;width:584px;font-size:31px"><p>Un médico que empiece por las 108 retinas con aviso revisa el 56 % de las fotos y encuentra el 82 % de los glaucomas. El costo son <span class="red"><b>68 falsas alarmas</b></span> y <span class="red"><b>9 casos sin aviso</b></span>.</p></div>
+<svg style="left:1286px;top:566px;width:580px;height:230px" viewBox="0 0 580 230"><g><line x1="0" x2="580" y1="1" y2="1" stroke="#17110c" stroke-width="1.5"/>
+<text x="0" y="56" font-size="54" font-family="Old Standard TT">0,816</text><text x="172" y="36" class="tb">Sensibilidad, 40/49</text><text x="172" y="64" class="ts">IC 95 %: 0,69 a 0,92</text>
+<text x="0" y="134" font-size="54" font-family="Old Standard TT">0,524</text><text x="172" y="114" class="tb">Especificidad, 75/143</text><text x="172" y="142" class="ts">IC 95 %: 0,44 a 0,60</text>
+<text x="0" y="212" font-size="54" font-family="Old Standard TT">0,751</text><text x="172" y="192" class="tb">AUC, n = 192</text><text x="172" y="220" class="ts">IC 95 %: 0,66 a 0,83</text></g></svg>
+<div class="t small" data-edit style="left:1286px;top:818px;width:580px;border-top:1.5px solid var(--ink);padding-top:16px;font-size:24px"><p>Empeoró frente a validación: el AUC bajó de 0,83 a 0,75 y la especificidad, de 0,63 a 0,52. Las puntuaciones están entre 0,39 y 0,61, así que el umbral es frágil. La base no se evaluó en prueba.</p></div>
+<span class="page">6</span>
+</section>
 
+<!-- === 7. ERROR, CASO LÍMITE Y EJECUCIÓN === -->
+<section class="slide">
+<h2 data-edit style="left:84px;top:84px;width:800px">El oftalmólogo busca la copa. En estos dos casos, el modelo se fijó en el borde</h2>
+<div class="t" data-edit style="left:84px;top:320px;width:800px">
+<p>Por eso la herramienta avisa y <b>el médico decide</b>. Con el mapa al lado, puede ver en qué se apoyó el modelo y descartar una respuesta mal apoyada. Ningún paciente recibiría un resultado sin la revisión de un especialista.</p></div>
+<div class="t" data-edit style="left:84px;top:528px;width:800px;font-size:27px"><dl style="grid-template-columns:60px 1fr;row-gap:18px">
+<dt>1.</dt><dd><b>test/580, glaucoma sin aviso</b> (p = 0,420). El disco está descentrado. Hipótesis: los rasgos mezclan el disco con la retina de alrededor.</dd>
+<dt>2.</dt><dd><b>test/183, sana con aviso</b> (p = 0,4836, apenas sobre el umbral). Toma desenfocada, sin bordes nítidos.</dd></dl></div>
+<div class="t" style="left:84px;top:822px;width:810px"><pre>$ python predecir.py test/580.jpg test/366.jpg
+umbral 0.4834
+test/580: puntuación 0.4200 -&gt; sano     | ref.: glaucoma
+test/366: puntuación 0.5793 -&gt; glaucoma | ref.: glaucoma</pre>
+<p class="small" data-edit style="margin-top:14px;font-size:23px">Salida guardada (abreviada) de la inferencia con los pesos congelados.</p></div>
+<div class="plate" style="left:934px;top:44px;width:942px;height:992px">
+<span class="k" style="left:24px;top:240px;width:36px">1.</span><span class="k" style="left:24px;top:680px;width:36px">2.</span>
+<img class="f o" src="img/test_580.jpg" alt="test/580" style="left:72px;top:50px;width:404px;height:404px"><img class="f o" src="img/cam_test_580.jpg" alt="Grad-CAM de test/580" style="left:500px;top:50px;width:404px;height:404px">
+<img class="f o" src="img/test_183.jpg" alt="test/183" style="left:72px;top:490px;width:404px;height:404px"><img class="f o" src="img/cam_test_183.jpg" alt="Grad-CAM de test/183" style="left:500px;top:490px;width:404px;height:404px">
+<p class="cap" data-edit style="left:72px;top:918px;width:404px;text-align:center">Lo que ve el médico</p><p class="cap" data-edit style="left:500px;top:918px;width:404px;text-align:center">Dónde se apoyó (Grad-CAM)</p>
+</div>
+<span class="page">7</span>
+</section>
+
+<!-- === 8. CIERRE === -->
+<section class="slide">
+<div class="plate" style="left:44px;top:44px;width:1832px;height:992px">
+<h2 data-edit style="left:76px;top:80px;width:760px;font-size:104px;line-height:1;color:var(--disc)">Un segundo par de ojos para el médico</h2>
+<img class="f o" src="img/test_262.jpg" alt="" style="left:892px;top:64px;width:410px;height:410px"><img class="f o" src="img/test_366.jpg" alt="" style="left:1346px;top:64px;width:410px;height:410px">
+<div class="t" data-edit style="left:76px;top:560px;width:800px;font-size:30px"><p><span class="it" style="color:var(--disc)">Lo que ya hace.</span> Separa mejor que el azar en 192 retinas que no se usaron para ajustar (AUC 0,751). Los rasgos de ResNet-18 sumaron 0,16 de AUC sobre el color en validación, y sin regularizar el modelo memoriza.</p>
+</div>
+<div class="t" data-edit style="left:960px;top:560px;width:796px;font-size:30px"><p><span class="it" style="color:var(--disc)">Lo que no podemos afirmar.</span> Que sirva en la clínica o con otras cámaras y poblaciones. Que use la copa óptica. Que V2 supere a V3, ni a la base en prueba, donde la base no se evaluó.</p></div>
+<div class="t" data-edit style="left:76px;top:822px;width:1680px;font:400 40px/1.3 var(--serif);border-top:1.5px solid rgba(239,226,189,.5);padding-top:30px">Para llegar a la consulta falta separar por paciente con los datos oficiales y validar en otro conjunto, como REFUGE. La meta es que el oftalmólogo sepa a quién mirar primero.</div>
+</div>
+<span class="page">8</span>
+</section>
+
+</div></div>
 <script>
 /* === PRESENTACIÓN: escalado del escenario y navegación === */
 class SlidePresentation {

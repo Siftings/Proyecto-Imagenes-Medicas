@@ -4,18 +4,20 @@ La guía exige que todos los integrantes intervengan y que cada uno pueda explic
 
 | Min | Diapositiva | Quién | Idea central |
 |---|---|---|---|
-| 0:00–0:30 | 1 Portada | Giuseppe | Presentar al equipo y la pregunta |
-| 0:30–1:30 | 2 Problema y datos | Giuseppe | Entrada, salida y clase positiva. 650 imágenes, como máximo 641 ojos, personas no verificables |
-| 1:30–2:45 | 3 Partición y fuga | Giuseppe | 363/91/192, semilla 42. pHash y revisión a ojo: 9 pares del mismo ojo y 4 imágenes excluidas. Sin ID de paciente queda un límite |
-| 2:45–4:00 | 4 Método | Juan David | El cambio principal es la representación: V1 aísla ese efecto, V2 regulariza y V3 hace ajuste fino. La regla de selección se fijó antes de comparar |
-| 4:00–5:00 | 5 Validación | Juan David | AUC de 0,667 → 0,831. V1 y V3 memorizan el entrenamiento. Se eligió V2 con umbral 0,4834 |
-| 5:00–6:15 | 6 Prueba | Daniel | 40/49 y 75/143, AUC de 0,751 sobre 192 imágenes. Qué mejoró y qué empeoró |
-| 6:15–7:15 | 7 Error y demostración | Daniel explica los casos; Juan David corre `predecir.py` | test/580 (FN) y test/183 (caso límite). Las causas se presentan como hipótesis |
-| 7:15–8:00 | 8 Conclusión | Daniel | Hay señal, pero no alcanza para tamizaje. Qué no se puede concluir y cuál es el trabajo futuro |
+| 0:00–0:30 | 1 Portada | Giuseppe | Presentar al equipo. El proyecto busca apoyar al médico, no reemplazarlo |
+| 0:30–1:30 | 2 Problema y datos | Giuseppe | Qué daña el glaucoma y qué se ve en la foto. Recibe, entrega, decide el médico. 650 imágenes, a lo sumo 641 ojos, personas no verificables |
+| 1:30–2:45 | 3 Partición y fuga | Giuseppe | 363/91/192, semilla 42. Cinco pares del mismo ojo entre particiones (en la lámina); 4 de prueba excluidas. Sin ID de paciente queda un límite |
+| 2:45–4:00 | 4 Método | Juan David | El caso train/233 (validación): la base le da 0,004 y V2 0,566. V1 aísla la representación, V2 regulariza, V3 hace ajuste fino. La regla se fijó antes de comparar |
+| 4:00–5:00 | 5 Validación | Juan David | AUC de 0,667 a 0,831. V1 y V3 memorizan. Con la especificidad de la base, V2 encuentra 21 de 23 y la base 16. Umbral 0,4834 |
+| 5:00–6:15 | 6 Prueba | Daniel | Las 192 retinas en la lámina: 40 + 68 con aviso, 9 + 75 sin aviso. Quien revise primero las 108 con aviso ve el 56 % de las fotos y el 82 % de los glaucomas. Qué mejoró y qué empeoró |
+| 6:15–7:15 | 7 Error y demostración | Daniel explica los casos; Juan David corre `predecir.py` | test/580 (FN) y test/183 (caso límite). El mapa le permite al médico ver en qué se apoyó el modelo. Las causas son hipótesis |
+| 7:15–8:00 | 8 Cierre | Daniel | Un segundo par de ojos: qué ya hace, qué no podemos afirmar y qué falta para llegar a la consulta |
+
+**Cuidado al hablar:** el "56 % / 82 %" sale de la matriz de prueba (108/192 y 40/49), con 25,5 % de glaucoma en el conjunto. En una consulta real la proporción es otra, así que no se puede prometer ese ahorro.
 
 **Demostración (desde `codigo/`, con el entorno activado):**
 ```bash
-python predecir.py ../archive/ORIGA/test/580.jpg ../archive/ORIGA/test/240.jpg
+python predecir.py ../archive/ORIGA/test/580.jpg ../archive/ORIGA/test/366.jpg
 ```
 Si el entorno falla, se muestra la salida guardada en la diapositiva 7 y se explica qué pasó.
 
