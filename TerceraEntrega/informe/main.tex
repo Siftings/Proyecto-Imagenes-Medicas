@@ -55,6 +55,9 @@
 \renewcommand{\textfraction}{0.07}
 \renewcommand{\floatpagefraction}{0.85}
 \setcounter{topnumber}{3}
+\setlength{\floatsep}{10pt plus 3pt minus 2pt}
+\setlength{\textfloatsep}{10pt plus 3pt minus 2pt}
+\setlength{\intextsep}{10pt plus 3pt minus 2pt}
 \setcounter{bottomnumber}{2}
 \setcounter{totalnumber}{5}
 \setlength{\emergencystretch}{3em}% evita desbordes con nombres de archivo largos
@@ -67,6 +70,8 @@
 \renewcommand{\refname}{Referencias}
 \renewcommand{\appendixname}{Anexo}
 \renewcommand{\contentsname}{Contenido}
+\renewcommand{\abstractname}{Resumen}
+\makeatletter\renewcommand{\keywordname}{Palabras clave}\makeatother
 
 %%==================================================================%%
 %% PORTADA (no cuenta dentro de las 8-10 paginas de contenido)      %%
@@ -152,12 +157,13 @@ Exclusiones & 4 imágenes de prueba (\texttt{test/158}, \texttt{test/170}, \text
 
 Las tablas del ZIP identifican cada imagen con un código seudónimo (\texttt{train/093}, \texttt{test/240}). El ZIP no incluye el conjunto de datos. Las figuras sí muestran algunas imágenes, lo que permite la licencia MIT de la copia.
 
+\FloatBarrier
 %%==================================================================%%
 \section{Partición y control de fuga}\label{sec:particion}
 %%==================================================================%%
 
 Mantenemos la partición de la Entrega 2, sin cambios.
-\begin{itemize}
+\begin{itemize}\raggedright
 \item \textbf{Prueba:} las 196 imágenes de \texttt{ORIGA/test}.
 \item \textbf{Validación:} el 20\,\% de \texttt{ORIGA/train}, estratificado por etiqueta (\texttt{train\_test\_split}, \texttt{test\_size=0.2}, \texttt{random\_state=42}) \cite{pedregosa2011scikit}.
 \item \textbf{Entrenamiento:} el resto de \texttt{ORIGA/train}.
@@ -181,7 +187,7 @@ Total & 650 & 168 & 482 & 25,8 & \\
 \end{tabular*}
 \end{table}
 
-\textbf{Comprobación de no solapamiento} (\texttt{03\_verificar\_particion.py}, salida en \texttt{verificacion\_particion.txt}):
+{\raggedright\textbf{Comprobación de no solapamiento} (\texttt{03\_verificar\_particion.py}, salida en \texttt{verificacion\_particion.txt}):\par}
 \begin{enumerate}
 \item \textbf{Códigos:} la intersección de códigos entre las tres particiones está vacía.
 \item \textbf{Duplicados exactos:} no hay dos archivos con el mismo MD5.
@@ -191,12 +197,13 @@ Las cuatro imágenes de prueba con gemelo se excluyen de la evaluación. El caso
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{figuras/pares_mismo_ojo.png}
+\includegraphics[width=0.85\textwidth]{figuras/pares_mismo_ojo.png}
 \caption{Los cinco pares del mismo ojo que cruzan particiones (todas las particiones). Cada columna es un par, con su partición, su etiqueta ($y$) y su distancia pHash ($d$). Los cuatro casos de prueba se excluyen de la evaluación}\label{fig:pares}
 \end{figure}
 
 \textbf{Límite declarado.} La guía pide mantener juntos los ojos, las visitas y las repeticiones de una persona. Con esta copia \textbf{no es verificable}: no hay identificador de paciente ni de ojo, y el SERI no respondió la solicitud de la versión oficial. El pHash detecta tomas casi iguales del mismo ojo, pero no los dos ojos de una misma persona, que pueden verse distintos. Por eso no podemos descartar que la prueba contenga el otro ojo de alguien que está en entrenamiento, lo que podría inflar el resultado. Además, todo lo que se aprende de los datos (estandarización, coeficientes, elección de $C$, pesos de la red) se ajusta solo con entrenamiento. La validación se usa para comparar versiones y fijar el umbral, y la prueba se usó una única vez (Sección~\ref{sec:metodo}).
 
+\FloatBarrier
 %%==================================================================%%
 \section{Método y comparación}\label{sec:metodo}
 %%==================================================================%%
@@ -222,7 +229,7 @@ La Figura~\ref{fig:flujo} resume el flujo. La línea base es la de la Entrega 2.
 \begin{table}[htbp]
 \small
 \caption{Versiones comparadas. Todas se ajustan con las 363 imágenes de entrenamiento y usan la semilla 42}\label{tab:versiones}
-\begin{tabularx}{\textwidth}{@{}L{1.3cm}YYL{3.3cm}@{}}
+\begin{tabularx}{\textwidth}{@{}L{1.1cm}L{4.4cm}YL{3.4cm}@{}}
 \toprule
 Versión & Representación & Clasificador y parámetros & Cambio frente a la base \\
 \midrule
@@ -240,7 +247,7 @@ V3 & ResNet-18 con \texttt{layer4} y una capa final de 1 salida entrenables & BC
 En V2, la primera grilla de $C$ ($10^{-4}$ a 1) dejó el óptimo de la CV en su extremo inferior. La ampliamos hacia abajo, hasta $10^{-6}$, y el óptimo siguió en $10^{-4}$ (AUC de CV de 0,712). Esa decisión se tomó mirando solo la CV dentro de entrenamiento, pero la declaramos porque ocurrió después de ver la primera ejecución.
 
 \textbf{Protocolo de selección (fijado en \texttt{config.yaml} antes de comparar).}
-\begin{enumerate}
+\begin{enumerate}\raggedright
 \item Gana la versión con mayor AUC en las 91 imágenes de validación. Si otra más simple queda a menos de 0,01, gana la más simple. El orden de simplicidad es base $<$ V1 $<$ V2 $<$ V3.
 \item El umbral de la elegida es el menor que mantiene en validación una especificidad $\ge 0{,}632$, la de la línea base con umbral 0,5. Así se cumple el criterio secundario anunciado en la Entrega 2: más sensibilidad sin perder especificidad.
 \item La versión, el preprocesamiento, el umbral y el SHA-256 de los pesos se guardan en \texttt{version\_elegida.json}.
@@ -273,6 +280,7 @@ Christopher et al., 2018 \cite{christopher2018transfer} & 14\,822 fotografías d
 
 Los cuatro trabajos (Tabla~\ref{tab:estado}) sostienen dos decisiones. La primera es concentrarse en la región del disco, que es lo que contienen nuestros recortes. La segunda es usar una red preentrenada en vez de entrenarla desde cero. Christopher et al.\ observaron que la transferencia mejora el desempeño con pocos datos, y Chen et al.\ necesitaron aumento de datos y \textit{dropout} incluso con una red pequeña. Sus cifras son una referencia de lo alcanzable y no una comparación directa, porque usan particiones o versiones de los datos distintas.
 
+\FloatBarrier
 %%==================================================================%%
 \section{Resultados finales}\label{sec:resultados}
 %%==================================================================%%
@@ -350,10 +358,11 @@ La Figura~\ref{fig:casos} ilustra cuatro casos de prueba, uno de cada tipo: en c
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figuras/casos_prueba.png}
+\includegraphics[width=0.9\textwidth]{figuras/casos_prueba.png}
 \caption{Casos de prueba ilustrados con V2 (umbral 0,4834; $n=192$): verdadero positivo \texttt{test/426}, verdadero negativo \texttt{test/262}, falso positivo \texttt{test/531} y falso negativo \texttt{test/580}. Sobre cada imagen aparecen el código, la etiqueta de referencia, la puntuación $p$ y la predicción}\label{fig:casos}
 \end{figure}
 
+\FloatBarrier
 %%==================================================================%%
 \section{Errores y limitaciones}\label{sec:errores}
 %%==================================================================%%
@@ -396,6 +405,7 @@ Analizamos dos casos de la versión final en prueba (Figura~\ref{fig:analizados}
 \item \textbf{Interpretación:} el Grad-CAM de los casos analizados no muestra que el modelo use la copa óptica, así que no podemos afirmar que reconozca el signo clínico.
 \end{enumerate}
 
+\FloatBarrier
 %%==================================================================%%
 \section{Conclusiones y aportes}\label{sec:conclusiones}
 %%==================================================================%%
@@ -448,6 +458,7 @@ El documento sigue la plantilla \LaTeX\ de Springer Nature \cite{springer2024lat
 
 \bibliography{referencias}
 
+\clearpage
 \begin{appendices}
 
 \section{Resultados por caso en prueba}\label{secA1}
@@ -468,12 +479,13 @@ FP (68): sano predicho como glaucoma & 183 (0,484), 254 (0,484), 179 (0,484), 42
 \end{tabularx}
 \end{table}
 
+\FloatBarrier
 \section{Contenido del ZIP de evidencias y cómo ejecutarlo}\label{secA2}
 
 El archivo \texttt{EF\_Proyecto\_B\_Equipo02\_2026-30\_Evidencias.zip} contiene:
 
 {\raggedright
-\begin{itemize}
+\begin{itemize}\raggedright
 \item \texttt{README.md}: software y versiones, instalación, estructura, ruta de datos, semilla, secuencia exacta de ejecución y salidas esperadas.
 \item \texttt{codigo/}: \texttt{config.yaml} (parámetros de la base y las variantes, regla de selección y revisión visual), \texttt{requirements.txt}, \texttt{comun.py}, \texttt{modelos.py}, los scripts \texttt{01}--\texttt{13} y \texttt{predecir.py}.
 \item \texttt{codigo/modelos/}: pesos entrenados (\texttt{modelo\_base.joblib}, \texttt{modelo\_v1.joblib}, \texttt{modelo\_v2.joblib}, \texttt{modelo\_v3.pt}). Los pesos de ImageNet de ResNet-18 se descargan del enlace oficial de torchvision.
